@@ -767,6 +767,37 @@ body {
   box-shadow: 0 0 16px var(--blue-glow);
 }
 
+.axiom-btn-export {
+  width: 100%;
+  background: linear-gradient(135deg, var(--blue-deep) 0%, var(--blue-mid) 100%);
+  border: 1px solid var(--border-bright);
+  color: var(--white);
+  font-family: 'Orbitron', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  padding: 16px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.axiom-btn-export::before {
+  content: '↓';
+  font-size: 14px;
+  font-family: sans-serif;
+}
+
+.axiom-btn-export:hover {
+  transform: scale(1.02);
+  box-shadow: 0 0 28px rgba(79, 195, 247, 0.35);
+}
+
 /* ─── Spinner ────────────────────────────────────────────────────────────────── */
 
 .axiom-spinner {
