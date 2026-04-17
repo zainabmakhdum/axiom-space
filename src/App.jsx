@@ -428,15 +428,21 @@ function Stage2({ missionData, onComplete }) {
 
 // ─── Stage 3: Stress Test ─────────────────────────────────────────────────────
 
-function Stage3({ missionData, constraints }) {
+function Stage3({ missionData, constraints, onAddConstraint }) {
   const [scenarios, setScenarios] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [analysisVersion, setAnalysisVersion] = useState(1)
+  const [fixStates, setFixStates] = useState({})
+  const [anyFixAccepted, setAnyFixAccepted] = useState(false)
+  const [toast, setToast] = useState(null)
 
-  const runTest = async () => {
+  const runTest = async (isRerun = false) => {
+    if (isRerun) setAnalysisVersion((v) => v + 1)
     setLoading(true)
     setError('')
     setScenarios(null)
+    setFixStates({})
     try {
       const constraintList = constraints
         .map((c) => `${c.id} [${c.priorityTier}]: ${c.parsedConstraint}`)
@@ -469,6 +475,83 @@ function Stage3({ missionData, constraints }) {
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleFix = async (scenario, idx) => {
+    setFixStates((prev) => ({ ...prev, [idx]: { loading: true, suggestion: null, error: null } }))
+    try {
+      const constraintList = constraints
+        .map((c) => `${c.id} [${c.priorityTier}]: ${c.parsedConstraint}`)
+        .join('\n')
+
+      const res = await client.messages.create({
+        model: 'claude-opus-4-7',
+        max_tokens: 1024,
+        messages: [{
+          role: 'user',
+          content:
+            `You are a mission constraint engineer. A stress test identified a ${scenario.outcome} in the constraint set. Suggest a constraint to resolve it.\n\n` +
+            `Mission: ${missionData.missionName} (${missionData.missionType})\n` +
+            `Objective: ${missionData.objective}\n\n` +
+            `Current constraints:\n${constraintList}\n\n` +
+            `Failing scenario: "${scenario.scenario}"\n` +
+            `Explanation: "${scenario.explanation}"\n\n` +
+            `Return ONLY a valid JSON object — no markdown, no explanation:\n` +
+            `{"suggestedConstraint":"...","reasoning":"...","affectedConstraints":["C-01"]}`,
+        }],
+      })
+      const suggestion = parseJSON(res.content[0].text)
+      setFixStates((prev) => ({ ...prev, [idx]: { loading: false, suggestion, error: null } }))
+    } catch (err) {
+      setFixStates((prev) => ({
+        ...prev,
+        [idx]: { loading: false, suggestion: null, error: err.message || 'Fix suggestion failed' },
+      }))
+    }
+  }
+
+  const handleAcceptFix = async (suggestion, idx) => {
+    setFixStates((prev) => ({ ...prev, [idx]: { ...prev[idx], accepting: true } }))
+    try {
+      const res = await client.messages.create({
+        model: 'claude-opus-4-7',
+        max_tokens: 1024,
+        messages: [{
+          role: 'user',
+          content:
+            `You are a mission constraint analyzer. Return ONLY a valid JSON object — no markdown, no explanation.\n\n` +
+            `Mission: ${missionData.missionName} (${missionData.missionType})\n` +
+            `Objective: ${missionData.objective}\n` +
+            `Environment: ${missionData.operationalEnvironment}\n\n` +
+            `New Constraint: "${suggestion.suggestedConstraint}"\n\n` +
+            `Required JSON structure:\n` +
+            `{"parsedConstraint":"...","ambiguityFlags":["..."],"priorityTier":"Safety","rationale":"..."}\n\n` +
+            `priorityTier MUST be exactly one of: Safety, Power, Science, Ops`,
+        }],
+      })
+      const parsed = parseJSON(res.content[0].text)
+      const newConstraint = {
+        ...parsed,
+        id: `C-${String(constraints.length + 1).padStart(2, '0')}`,
+      }
+      onAddConstraint(newConstraint)
+      setAnyFixAccepted(true)
+      setFixStates((prev) => ({
+        ...prev,
+        [idx]: { loading: false, accepting: false, accepted: true, suggestion: null },
+      }))
+      setToast('Constraint added to registry')
+      setTimeout(() => setToast(null), 3000)
+    } catch (err) {
+      setFixStates((prev) => ({
+        ...prev,
+        [idx]: { ...prev[idx], accepting: false, error: err.message || 'Failed to process fix' },
+      }))
+    }
+  }
+
+  const handleDismiss = (idx) => {
+    setFixStates((prev) => ({ ...prev, [idx]: { ...prev[idx], suggestion: null, error: null } }))
   }
 
   const handleExport = () => {
@@ -618,7 +701,22 @@ function Stage3({ missionData, constraints }) {
     doc.text(`Total constraints registered: ${constraints.length}`, ML, y); y += 10
 
     constraints.forEach((c) => {
-      y = checkPageBreak(y, 52)
+      // Pre-calculate line counts so the page-break reserve matches actual block height
+      doc.setFontSize(10)
+      const cLines = doc.splitTextToSize(c.parsedConstraint, CW - 2)
+      const flags = c.ambiguityFlags?.filter(Boolean) ?? []
+      doc.setFontSize(8.5)
+      const rLines = doc.splitTextToSize(c.rationale, CW - 4)
+
+      const blockHeight =
+        6 +                        // ID + tier row
+        cLines.length * 5 + 3 +    // constraint text
+        flags.length * 5 +         // ambiguity flags
+        rLines.length * 4.5 + 4 +  // rationale
+        6                          // separator + spacing
+
+      y = checkPageBreak(y, blockHeight + 15)
+
       const tc = TIER_C[c.priorityTier] || TIER_C.Ops
 
       doc.setFont('helvetica', 'bold'); doc.setFontSize(11); doc.setTextColor(...C_BLUE)
@@ -628,17 +726,14 @@ function Stage3({ missionData, constraints }) {
       y += 6
 
       doc.setFont('helvetica', 'normal'); doc.setFontSize(10); doc.setTextColor(...C_WHITE)
-      const cLines = doc.splitTextToSize(c.parsedConstraint, CW - 2)
       doc.text(cLines, ML + 2, y); y += cLines.length * 5 + 3
 
-      const flags = c.ambiguityFlags?.filter(Boolean) ?? []
       if (flags.length > 0) {
         doc.setFontSize(8.5); doc.setTextColor(255, 179, 0)
         flags.forEach((f) => { doc.text(`[!] ${f}`, ML + 4, y); y += 5 })
       }
 
       doc.setFont('helvetica', 'italic'); doc.setFontSize(8.5); doc.setTextColor(...C_DIM)
-      const rLines = doc.splitTextToSize(c.rationale, CW - 4)
       doc.text(rLines, ML + 2, y); y += rLines.length * 4.5 + 4
 
       faintHr(y - 1); y += 5
@@ -776,7 +871,12 @@ function Stage3({ missionData, constraints }) {
   return (
     <div className="axiom-stage">
       <div className="axiom-stress-header">
-        <h2 className="axiom-stress-title">ADVERSARIAL STRESS TEST</h2>
+        <div className="axiom-stress-title-row">
+          <h2 className="axiom-stress-title">ADVERSARIAL STRESS TEST</h2>
+          {analysisVersion > 1 && (
+            <span className="axiom-version-badge">ANALYSIS v{analysisVersion}</span>
+          )}
+        </div>
         <div className="axiom-section-sub">
           {missionData.missionName} / {constraints.length} constraints
         </div>
@@ -798,7 +898,7 @@ function Stage3({ missionData, constraints }) {
               </div>
             ))}
           </div>
-          <button onClick={runTest} className="axiom-btn-stress">
+          <button onClick={() => runTest(false)} className="axiom-btn-stress">
             EXECUTE STRESS TEST
           </button>
         </div>
@@ -814,12 +914,18 @@ function Stage3({ missionData, constraints }) {
 
       {error && (
         <div className="axiom-error-wrap">
-          <ErrorBox msg={error} onRetry={runTest} />
+          <ErrorBox msg={error} onRetry={() => runTest(false)} />
         </div>
       )}
 
       {scenarios && (
         <div className="axiom-results">
+          {anyFixAccepted && (
+            <button onClick={() => runTest(true)} className="axiom-btn-rerun-stress">
+              RE-RUN STRESS TEST
+            </button>
+          )}
+
           <div className="axiom-summary-bar">
             <span className="axiom-summary-label">Results ({scenarios.length})</span>
             <span className="axiom-summary-pass">■ PASS: {counts.pass}</span>
@@ -829,6 +935,9 @@ function Stage3({ missionData, constraints }) {
 
           {scenarios.map((s, i) => {
             const colors = OUTCOME_COLORS[s.outcome] || OUTCOME_COLORS.gap
+            const fixState = fixStates[i] || {}
+            const canFix = s.outcome === 'conflict' || s.outcome === 'gap'
+
             return (
               <div
                 key={i}
@@ -845,21 +954,84 @@ function Stage3({ missionData, constraints }) {
                     {s.outcome.toUpperCase()}
                   </span>
                 </div>
+
                 {s.constraintsInvolved?.length > 0 && (
                   <div className="axiom-involved-chips">
                     {s.constraintsInvolved.map((c, j) => (
-                      <span key={j} className="axiom-involved-chip">
-                        {c}
-                      </span>
+                      <span key={j} className="axiom-involved-chip">{c}</span>
                     ))}
                   </div>
                 )}
+
                 <div className="axiom-scenario-explanation">{s.explanation}</div>
+
+                {canFix && !fixState.accepted && (
+                  <div className="axiom-fix-row">
+                    <button
+                      onClick={() => handleFix(s, i)}
+                      disabled={fixState.loading || !!fixState.suggestion}
+                      className="axiom-btn-fix"
+                    >
+                      {fixState.loading ? <><span className="axiom-spinner" /> ANALYZING…</> : 'FIX THIS'}
+                    </button>
+                  </div>
+                )}
+
+                {fixState.accepted && (
+                  <div className="axiom-fix-accepted-badge">✓ FIX APPLIED</div>
+                )}
+
+                {fixState.error && !fixState.suggestion && (
+                  <div className="axiom-error-wrap">
+                    <ErrorBox msg={fixState.error} />
+                  </div>
+                )}
+
+                {fixState.suggestion && (
+                  <div className="axiom-fix-panel">
+                    <div className="axiom-fix-panel-header">SUGGESTED RESOLUTION</div>
+                    <div className="axiom-fix-constraint-text">
+                      {fixState.suggestion.suggestedConstraint}
+                    </div>
+                    <div className="axiom-fix-label">REASONING</div>
+                    <div className="axiom-fix-reasoning">{fixState.suggestion.reasoning}</div>
+                    {fixState.suggestion.affectedConstraints?.length > 0 && (
+                      <div className="axiom-involved-chips">
+                        {fixState.suggestion.affectedConstraints.map((c, j) => (
+                          <span key={j} className="axiom-involved-chip">{c}</span>
+                        ))}
+                      </div>
+                    )}
+                    {fixState.error && (
+                      <div className="axiom-error-wrap">
+                        <ErrorBox msg={fixState.error} />
+                      </div>
+                    )}
+                    <div className="axiom-fix-actions">
+                      <button
+                        onClick={() => handleAcceptFix(fixState.suggestion, i)}
+                        disabled={fixState.accepting}
+                        className="axiom-btn-accept"
+                      >
+                        {fixState.accepting
+                          ? <><span className="axiom-spinner" /> PROCESSING…</>
+                          : 'ACCEPT FIX'}
+                      </button>
+                      <button
+                        onClick={() => handleDismiss(i)}
+                        disabled={fixState.accepting}
+                        className="axiom-btn-dismiss"
+                      >
+                        DISMISS
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             )
           })}
 
-          <button onClick={runTest} className="axiom-btn-rerun">
+          <button onClick={() => runTest(false)} className="axiom-btn-rerun">
             RUN AGAIN
           </button>
 
@@ -868,6 +1040,8 @@ function Stage3({ missionData, constraints }) {
           </button>
         </div>
       )}
+
+      {toast && <div className="axiom-toast">{toast}</div>}
     </div>
   )
 }
@@ -889,6 +1063,8 @@ export default function App() {
     setStage(3)
   }
 
+  const addConstraint = (c) => setConstraints((prev) => [...prev, c])
+
   return (
     <div className="axiom-app">
       <div className="axiom-stars-bg" />
@@ -901,7 +1077,11 @@ export default function App() {
           <Stage2 missionData={missionData} onComplete={goToStressTest} />
         )}
         {stage === 3 && missionData && (
-          <Stage3 missionData={missionData} constraints={constraints} />
+          <Stage3
+            missionData={missionData}
+            constraints={constraints}
+            onAddConstraint={addConstraint}
+          />
         )}
       </main>
     </div>

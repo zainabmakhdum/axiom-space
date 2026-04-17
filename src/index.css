@@ -1212,3 +1212,241 @@ body {
   padding-top: 10px;
   line-height: 1.65;
 }
+
+/* ─── Stress Header Title Row ────────────────────────────────────────────────── */
+
+.axiom-stress-title-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.axiom-version-badge {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--blue-bright);
+  background: var(--blue-glow);
+  border: 1px solid var(--border-bright);
+  padding: 3px 10px;
+  border-radius: 4px;
+  letter-spacing: 0.15em;
+  animation: fadeIn 0.3s ease;
+}
+
+/* ─── Re-run Stress Test Button ──────────────────────────────────────────────── */
+
+.axiom-btn-rerun-stress {
+  width: 100%;
+  background: transparent;
+  border: 2px solid var(--blue-bright);
+  color: var(--blue-bright);
+  font-family: 'Orbitron', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  padding: 14px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  animation: glowPulse 2.5s ease-in-out infinite;
+}
+
+.axiom-btn-rerun-stress:hover {
+  background: var(--blue-glow);
+  box-shadow: 0 0 30px rgba(79, 195, 247, 0.4);
+  transform: scale(1.01);
+}
+
+/* ─── Fix This Button & Row ──────────────────────────────────────────────────── */
+
+.axiom-fix-row {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 10px;
+  border-top: 1px solid var(--white-faint);
+  margin-top: 2px;
+}
+
+.axiom-btn-fix {
+  background: transparent;
+  border: 1px solid var(--border-bright);
+  color: var(--blue-bright);
+  font-family: 'Orbitron', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  padding: 7px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+}
+
+.axiom-btn-fix:hover:not(:disabled) {
+  background: var(--blue-glow);
+  box-shadow: 0 0 14px var(--blue-glow);
+}
+
+.axiom-btn-fix:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.axiom-fix-accepted-badge {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  color: #4CAF50;
+  letter-spacing: 0.12em;
+  text-align: right;
+  padding-top: 8px;
+  border-top: 1px solid var(--white-faint);
+  margin-top: 2px;
+}
+
+/* ─── Fix Suggestion Panel ───────────────────────────────────────────────────── */
+
+.axiom-fix-panel {
+  background: rgba(1, 8, 20, 0.85);
+  border: 1px solid var(--border-bright);
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 6px;
+  animation: slideUp 0.25s ease both;
+}
+
+.axiom-fix-panel-header {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--blue-bright);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.axiom-fix-constraint-text {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--white);
+  line-height: 1.55;
+  padding: 10px 14px;
+  background: var(--blue-glow);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
+.axiom-fix-label {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--blue-bright);
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+}
+
+.axiom-fix-reasoning {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 13px;
+  color: var(--white-dim);
+  line-height: 1.65;
+}
+
+.axiom-fix-actions {
+  display: flex;
+  gap: 10px;
+  padding-top: 4px;
+}
+
+.axiom-btn-accept {
+  flex: 1;
+  background: linear-gradient(135deg, var(--blue-deep) 0%, var(--blue-mid) 100%);
+  border: 1px solid var(--border-bright);
+  color: var(--white);
+  font-family: 'Orbitron', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  padding: 12px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.axiom-btn-accept:hover:not(:disabled) {
+  transform: scale(1.02);
+  box-shadow: 0 0 22px rgba(79, 195, 247, 0.3);
+}
+
+.axiom-btn-accept:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.axiom-btn-dismiss {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--white-dim);
+  font-family: 'Orbitron', sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  padding: 12px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+
+.axiom-btn-dismiss:hover:not(:disabled) {
+  border-color: var(--border-bright);
+  color: var(--white);
+}
+
+.axiom-btn-dismiss:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ─── Toast Notification ─────────────────────────────────────────────────────── */
+
+@keyframes toastIn {
+  from { opacity: 0; transform: translateX(-50%) translateY(10px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+.axiom-toast {
+  position: fixed;
+  bottom: 32px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(76, 175, 80, 0.15);
+  border: 1px solid rgba(76, 175, 80, 0.45);
+  color: #4CAF50;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  padding: 13px 26px;
+  border-radius: 8px;
+  z-index: 1000;
+  white-space: nowrap;
+  pointer-events: none;
+  animation: toastIn 0.3s ease;
+  box-shadow: 0 0 20px rgba(76, 175, 80, 0.2);
+}
