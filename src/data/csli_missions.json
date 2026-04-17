@@ -1,0 +1,62 @@
+[
+  {
+    "id": "CSLI-MS-001",
+    "mission_type": "orbital_survey",
+    "keywords": ["orbital survey", "earth observation", "imaging", "polar orbit", "remote sensing", "mapping"],
+    "title": "Typical LEO Orbital Survey CubeSat — Operational Parameters",
+    "orbit": "Sun-synchronous orbit (SSO), 400-600km altitude, ~97-98 degree inclination",
+    "power_budget": "Average power generation 2-5W for 1-3U CubeSats using deployable solar panels. Eclipse periods 30-40 minutes per 90-minute orbit at 500km. Battery capacity typically 10-40 Wh. Science payload power draw 1-3W during operations.",
+    "comms": "1-4 ground station passes per day, 5-10 minutes per pass at low altitude. UHF/VHF for telemetry and commands. S-Band for science data downlink. Total daily comm window 20-40 minutes.",
+    "known_constraints": "Science operations must be scheduled around eclipse periods due to power limitations. Attitude maneuvers for imaging require reaction wheel operation which draws from battery. Data storage onboard required between comm windows. Thermal management critical during eclipse-to-sunlight transitions.",
+    "key_facts": "Sun-synchronous orbit (SSO), 400-600km altitude, ~97-98 degree inclination. Average power generation 2-5W for 1-3U CubeSats using deployable solar panels. Eclipse periods 30-40 minutes per 90-minute orbit at 500km. Battery capacity typically 10-40 Wh.",
+    "constraint_implication": "Science operations must be scheduled around eclipse periods due to power limitations. Attitude maneuvers for imaging require reaction wheel operation which draws from battery. Data storage onboard required between comm windows.",
+    "source_url": "https://www.nasa.gov/kennedy/launch-services-program/cubesat-launch-initiative/",
+    "source_document": "NASA CubeSat Launch Initiative program documentation + NASA CubeSat 101 guide",
+    "source_verified": true
+  },
+  {
+    "id": "CSLI-MS-002",
+    "mission_type": "lunar_survey",
+    "keywords": ["lunar orbit", "lunar polar", "moon", "lunar south pole", "cislunar", "water ice", "Artemis"],
+    "title": "Lunar CubeSat Operational Parameters — Cislunar Environment",
+    "orbit": "Low lunar orbit 50-100km, polar inclination for south pole coverage. Orbital period approximately 2 hours. Far-side communication blackout each orbit approximately 30-45 minutes.",
+    "power_budget": "Solar power generation significantly reduced during permanently shadowed region overflight. Battery must sustain all operations during comm blackout and eclipse. No RTG assumed for CubeSat class. Power-intensive instruments (radar, active illumination) require duty cycling against eclipse schedule.",
+    "comms": "Communication only possible when spacecraft has line-of-sight to Earth. Lunar far-side passes create mandatory blackout periods. Deep Space Network (DSN) contact windows limited — not continuous coverage. Round-trip light time 2.6 seconds introduces autonomous operation requirement.",
+    "known_constraints": "Science instruments requiring active power (radar, spectrometers) must be scheduled against eclipse and comm blackout windows. No real-time human intervention during far-side passes. Debris avoidance must be autonomous — no catalog infrastructure in lunar orbit. Mascon perturbations require frequent station-keeping burns consuming propellant and power.",
+    "key_facts": "Low lunar orbit 50-100km, polar inclination for south pole coverage. Orbital period approximately 2 hours. Far-side communication blackout each orbit approximately 30-45 minutes. No formal debris tracking catalog exists for lunar orbit.",
+    "constraint_implication": "Debris avoidance must be autonomous — no catalog infrastructure in lunar orbit. Mascon perturbations require frequent station-keeping burns consuming propellant and power. No real-time human intervention during far-side passes.",
+    "source_url": "https://www.nasa.gov/kennedy/launch-services-program/cubesat-launch-initiative/",
+    "source_document": "NASA CSLI program documentation + Lunar IceCube and LunaH-Map Artemis-1 rideshare mission profiles",
+    "source_verified": true
+  },
+  {
+    "id": "CSLI-MS-003",
+    "mission_type": "comms_relay",
+    "keywords": ["comms relay", "communication", "relay", "bent pipe", "store and forward", "network"],
+    "title": "CubeSat Communications Relay — Operational Parameters",
+    "orbit": "LEO 400-600km, often multiple orbital planes for coverage. Orbital period ~90-96 minutes. Ground station contact 4-6 times per day per station.",
+    "power_budget": "Continuous receiver operation required for relay function. Transmitter power draw highest during active relay passes. Battery must support transmitter during eclipse if relay operations continue. Power budget dominated by communications payload.",
+    "comms": "Primary mission IS communications — relay payload is the science payload. Antenna pointing critical for relay link budget. Multiple simultaneous link management may be required. Ground contact for housekeeping separate from mission relay contacts.",
+    "known_constraints": "Comm relay missions cannot suspend communications payload to save power without mission failure. Power reserve constraints conflict directly with mission function if reserve threshold is set high relative to transmitter draw. Attitude stability critical for antenna pointing — GN&C anomalies directly impact mission.",
+    "key_facts": "LEO 400-600km, often multiple orbital planes for coverage. Orbital period ~90-96 minutes. Continuous receiver operation required for relay function. Transmitter power draw highest during active relay passes.",
+    "constraint_implication": "Comm relay missions cannot suspend communications payload to save power without mission failure. Power reserve constraints conflict directly with mission function if reserve threshold is set high relative to transmitter draw.",
+    "source_url": "https://www.nasa.gov/kennedy/launch-services-program/cubesat-launch-initiative/",
+    "source_document": "NASA CSLI program documentation",
+    "source_verified": true
+  },
+  {
+    "id": "CSLI-MS-004",
+    "mission_type": "surface_rover",
+    "keywords": ["surface rover", "rover", "Mars", "lunar surface", "terrain", "mobility", "surface operations"],
+    "title": "Small Surface Rover — Operational Parameters",
+    "orbit": "Not applicable — surface operations. Communication via orbiter relay or direct-to-Earth depending on mission.",
+    "power_budget": "Solar power highly variable based on terrain, dust accumulation, and solar angles. Mobility draws significant power from battery. Science operations during traverse compete with mobility power demand. Battery reserve critical for overnight survival heating.",
+    "comms": "Communication windows defined by relay orbiter passes or direct Earth geometry. Mars missions: 4-24 minute one-way light time eliminates real-time control. Lunar surface: 1.3 second one-way but far-side terrain blocks direct link. All tactical decisions must be autonomous or pre-planned.",
+    "known_constraints": "Mobility and science operations cannot be scheduled simultaneously with peak power demand. Communication delay makes real-time hazard avoidance impossible — all hazard avoidance must be autonomous. Science priorities must be encoded as constraints for autonomous execution during blackout periods.",
+    "key_facts": "Surface operations. Solar power highly variable based on terrain, dust accumulation, and solar angles. Mobility draws significant power from battery. All tactical decisions must be autonomous or pre-planned.",
+    "constraint_implication": "Mobility and science operations cannot be scheduled simultaneously with peak power demand. Communication delay makes real-time hazard avoidance impossible — all hazard avoidance must be autonomous.",
+    "source_url": "https://www.nasa.gov/kennedy/launch-services-program/cubesat-launch-initiative/",
+    "source_document": "NASA CSLI program documentation + Mars Exploration Rover operational lessons",
+    "source_verified": true
+  }
+]

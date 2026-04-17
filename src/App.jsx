@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import Anthropic from '@anthropic-ai/sdk'
 import { jsPDF } from 'jspdf'
+import { retrieveRelevantContext, formatContextForPrompt, getEntryById } from './utils/retrieval'
 
 const client = new Anthropic({
   apiKey: import.meta.env.VITE_ANTHROPIC_API_KEY,
@@ -436,6 +437,9 @@ function Stage3({ missionData, constraints, onAddConstraint }) {
   const [fixStates, setFixStates] = useState({})
   const [anyFixAccepted, setAnyFixAccepted] = useState(false)
   const [toast, setToast] = useState(null)
+  const [retrievedSources, setRetrievedSources] = useState([])
+  const [sourcesOpen, setSourcesOpen] = useState(false)
+  const [citationOpen, setCitationOpen] = useState({})
 
   const runTest = async (isRerun = false) => {
     if (isRerun) setAnalysisVersion((v) => v + 1)
@@ -443,10 +447,15 @@ function Stage3({ missionData, constraints, onAddConstraint }) {
     setError('')
     setScenarios(null)
     setFixStates({})
+    setCitationOpen({})
     try {
       const constraintList = constraints
         .map((c) => `${c.id} [${c.priorityTier}]: ${c.parsedConstraint}`)
         .join('\n')
+
+      const retrievedEntries = retrieveRelevantContext(missionData, constraints)
+      setRetrievedSources(retrievedEntries)
+      const ragContext = formatContextForPrompt(retrievedEntries)
 
       const res = await client.messages.create({
         model: 'claude-opus-4-7',
@@ -454,7 +463,8 @@ function Stage3({ missionData, constraints, onAddConstraint }) {
         system:
           'You are an adversarial autonomous agent specialized in finding loopholes, conflicts, and gaps in spacecraft mission constraint sets. ' +
           'Your role is to identify scenarios where constraints fail, conflict with each other, or leave dangerous coverage gaps. ' +
-          'Be specific, technically rigorous, and creative. Think like an attacker stress-testing the system.',
+          'Be specific, technically rigorous, and creative. Think like an attacker stress-testing the system.' +
+          ragContext,
         messages: [
           {
             role: 'user',
@@ -464,8 +474,9 @@ function Stage3({ missionData, constraints, onAddConstraint }) {
               `Environment: ${missionData.operationalEnvironment}\n\n` +
               `Constraints:\n${constraintList}\n\n` +
               `Return ONLY a JSON array of exactly 6 adversarial scenarios. No markdown, no explanation.\n\n` +
-              `[{"scenario":"...","constraintsInvolved":["C-01"],"outcome":"pass","explanation":"..."}]\n\n` +
-              `outcome MUST be exactly one of: pass, conflict, gap`,
+              `[{"scenario":"...","constraintsInvolved":["C-01"],"outcome":"pass","explanation":"...","citations":[]}]\n\n` +
+              `outcome MUST be exactly one of: pass, conflict, gap\n` +
+              `citations MUST be an array of reference IDs (e.g. ["GSFC-AN-001"]) from the REAL-WORLD REFERENCE DATA that directly informed this scenario, or an empty array if none apply`,
           },
         ],
       })
@@ -605,6 +616,17 @@ function Stage3({ missionData, constraints, onAddConstraint }) {
       return y
     }
 
+    // Replace non-latin1 characters that jsPDF can't encode
+    const sanitize = (text = '') =>
+      text
+        .replace(/\u2014/g, '--')
+        .replace(/\u2013/g, '-')
+        .replace(/\u2018|\u2019/g, "'")
+        .replace(/\u201C|\u201D/g, '"')
+        .replace(/\u2026/g, '...')
+        .replace(/\u2022/g, '-')
+        .replace(/[^\x00-\xFF]/g, '?')
+
     // ── PAGE 1: COVER ────────────────────────────────────────────────────────
     bg()
 
@@ -701,19 +723,24 @@ function Stage3({ missionData, constraints, onAddConstraint }) {
     doc.text(`Total constraints registered: ${constraints.length}`, ML, y); y += 10
 
     constraints.forEach((c) => {
+      // Sanitize all text fields before measuring or rendering
+      const constraintText = sanitize(c.parsedConstraint)
+      const rationaleText  = sanitize(c.rationale)
+      const flags = (c.ambiguityFlags ?? []).filter(Boolean).map(sanitize)
+
       // Pre-calculate line counts so the page-break reserve matches actual block height
       doc.setFontSize(10)
-      const cLines = doc.splitTextToSize(c.parsedConstraint, CW - 2)
-      const flags = c.ambiguityFlags?.filter(Boolean) ?? []
+      const cLines = doc.splitTextToSize(constraintText, CW - 6)
       doc.setFontSize(8.5)
-      const rLines = doc.splitTextToSize(c.rationale, CW - 4)
+      const fLines = flags.map((f) => doc.splitTextToSize(`[!] ${f}`, CW - 8))
+      const rLines = doc.splitTextToSize(rationaleText, CW - 6)
 
       const blockHeight =
-        6 +                        // ID + tier row
-        cLines.length * 5 + 3 +    // constraint text
-        flags.length * 5 +         // ambiguity flags
-        rLines.length * 4.5 + 4 +  // rationale
-        6                          // separator + spacing
+        6 +                                          // ID + tier row
+        cLines.length * 5 + 3 +                     // constraint text
+        fLines.reduce((a, fl) => a + fl.length * 5, 0) + // ambiguity flags
+        rLines.length * 4.5 + 4 +                   // rationale
+        6                                            // separator + spacing
 
       y = checkPageBreak(y, blockHeight + 15)
 
@@ -728,9 +755,9 @@ function Stage3({ missionData, constraints, onAddConstraint }) {
       doc.setFont('helvetica', 'normal'); doc.setFontSize(10); doc.setTextColor(...C_WHITE)
       doc.text(cLines, ML + 2, y); y += cLines.length * 5 + 3
 
-      if (flags.length > 0) {
-        doc.setFontSize(8.5); doc.setTextColor(255, 179, 0)
-        flags.forEach((f) => { doc.text(`[!] ${f}`, ML + 4, y); y += 5 })
+      if (fLines.length > 0) {
+        doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5); doc.setTextColor(255, 179, 0)
+        fLines.forEach((fl) => { doc.text(fl, ML + 4, y); y += fl.length * 5 })
       }
 
       doc.setFont('helvetica', 'italic'); doc.setFontSize(8.5); doc.setTextColor(...C_DIM)
@@ -740,7 +767,7 @@ function Stage3({ missionData, constraints, onAddConstraint }) {
     })
 
 
-    // ── PAGE 4: STRESS TEST RESULTS ──────────────────────────────────────────
+    // ── PAGE 4: STRESS TEST RESULTS — COMPACT DASHBOARD ─────────────────────
     newPage()
     y = ML + 8
 
@@ -748,101 +775,189 @@ function Stage3({ missionData, constraints, onAddConstraint }) {
     doc.text('03 / ADVERSARIAL STRESS TEST RESULTS', ML, y)
     y += 5; hr(y); y += 8
 
-    const passC    = scenarios.filter((s) => s.outcome === 'pass').length
-    const conflC   = scenarios.filter((s) => s.outcome === 'conflict').length
-    const gapC     = scenarios.filter((s) => s.outcome === 'gap').length
+    const passC  = scenarios.filter((s) => s.outcome === 'pass').length
+    const conflC = scenarios.filter((s) => s.outcome === 'conflict').length
+    const gapC   = scenarios.filter((s) => s.outcome === 'gap').length
     doc.setFont('helvetica', 'bold'); doc.setFontSize(10)
-    doc.setTextColor(...OUT_C.pass);     doc.text(`PASS: ${passC}`,         ML,      y)
-    doc.setTextColor(...OUT_C.conflict); doc.text(`CONFLICT: ${conflC}`,    ML + 36, y)
-    doc.setTextColor(...OUT_C.gap);      doc.text(`GAP: ${gapC}`,           ML + 86, y)
-    y += 8; hr(y); y += 8
+    doc.setTextColor(...OUT_C.pass);     doc.text(`PASS: ${passC}`,      ML,      y)
+    doc.setTextColor(...OUT_C.conflict); doc.text(`CONFLICT: ${conflC}`, ML + 36, y)
+    doc.setTextColor(...OUT_C.gap);      doc.text(`GAP: ${gapC}`,        ML + 86, y)
+    y += 8; hr(y); y += 6
 
     scenarios.forEach((s, i) => {
-      y = checkPageBreak(y, 58)
+      y = checkPageBreak(y, 22)
       const oc = OUT_C[s.outcome] || C_DIM
-      const blockStartY = y - 3
 
-      doc.setFont('helvetica', 'bold'); doc.setFontSize(8.5); doc.setTextColor(...oc)
-      doc.text(s.outcome.toUpperCase(), ML + 5, y)
-      doc.setTextColor(...C_DIM)
-      doc.text(String(i + 1).padStart(2, '0'), W - ML, y, { align: 'right' })
-      y += 5
+      // Outcome badge
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(8); doc.setTextColor(...oc)
+      const badgeW = doc.getTextWidth(s.outcome.toUpperCase()) + 4
+      doc.setFillColor(...oc.map((v) => Math.round(v * 0.15)))
+      doc.roundedRect(ML, y - 4, badgeW, 5.5, 1, 1, 'F')
+      doc.text(s.outcome.toUpperCase(), ML + 2, y)
 
-      doc.setFont('helvetica', 'bold'); doc.setFontSize(10); doc.setTextColor(...C_WHITE)
-      const sLines = doc.splitTextToSize(s.scenario, CW - 7)
-      doc.text(sLines, ML + 5, y); y += sLines.length * 5 + 2
+      // Scenario number
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(...C_DIM)
+      doc.text(String(i + 1).padStart(2, '0'), ML + badgeW + 4, y)
 
+      // Constraint chips inline
       if (s.constraintsInvolved?.length > 0) {
-        doc.setFont('helvetica', 'bold'); doc.setFontSize(8); doc.setTextColor(...C_BLUE)
-        doc.text(s.constraintsInvolved.join('   '), ML + 5, y); y += 5
+        doc.setFont('helvetica', 'bold'); doc.setFontSize(7.5); doc.setTextColor(...C_BLUE)
+        doc.text(s.constraintsInvolved.join('  '), ML + badgeW + 14, y)
       }
+      y += 5.5
 
-      doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(...C_DIM)
-      const eLines = doc.splitTextToSize(s.explanation, CW - 7)
-      doc.text(eLines, ML + 5, y); y += eLines.length * 4.5 + 3
+      // First sentence only
+      const firstSentence = sanitize(
+        s.scenario.match(/^[^.!?]*[.!?]/)?.[0] ?? s.scenario.substring(0, 120)
+      )
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(...C_WHITE)
+      const sumLines = doc.splitTextToSize(firstSentence, CW - 4)
+      doc.text(sumLines, ML + 2, y); y += sumLines.length * 4.5 + 5
 
-      doc.setDrawColor(...oc); doc.setLineWidth(1.8)
-      doc.line(ML, blockStartY, ML, y)
-      y += 6
-
-      faintHr(y - 3); y += 2
+      faintHr(y - 2); y += 3
     })
 
 
-    // ── PAGE 5: OPEN ITEMS ────────────────────────────────────────────────────
+    // ── PAGE 5: OPEN ITEMS — ENGINEERING DOCUMENT ────────────────────────────
     newPage()
     y = ML + 8
 
     doc.setFont('helvetica', 'bold'); doc.setFontSize(13); doc.setTextColor(...C_BLUE)
     doc.text('04 / OPEN ITEMS FOR ENGINEERING REVIEW', ML, y)
-    y += 5; hr(y); y += 8
+    y += 5; hr(y); y += 7
 
-    doc.setFont('helvetica', 'italic'); doc.setFontSize(10); doc.setTextColor(...C_DIM)
+    doc.setFont('helvetica', 'italic'); doc.setFontSize(9); doc.setTextColor(...C_DIM)
     const noteLines = doc.splitTextToSize(
-      'The following items require resolution before autonomous deployment.',
+      'Items below require constraint revision or explicit precedence rules before autonomous deployment.',
       CW
     )
-    doc.text(noteLines, ML, y); y += noteLines.length * 5 + 6
+    doc.text(noteLines, ML, y); y += noteLines.length * 5 + 5
     hr(y); y += 9
 
     const openItems = scenarios.filter((s) => s.outcome === 'conflict' || s.outcome === 'gap')
 
     if (openItems.length === 0) {
       doc.setFont('helvetica', 'bold'); doc.setFontSize(11); doc.setTextColor(...OUT_C.pass)
-      doc.text('No open items — all scenarios passed.', ML, y)
+      doc.text('No open items -- all scenarios passed.', ML, y)
     } else {
-      openItems.forEach((item) => {
-        y = checkPageBreak(y, 55)
+      openItems.forEach((item, itemIdx) => {
+        const scenarioIdx = scenarios.indexOf(item)
         const oc = OUT_C[item.outcome]
+        const itemText    = sanitize(item.scenario)
+        const itemExpl    = sanitize(item.explanation)
+        const citationIds = item.citations?.length ? item.citations : []
 
-        doc.setDrawColor(...C_DIM); doc.setLineWidth(0.3)
-        doc.rect(ML, y - 3.5, 3.5, 3.5)
+        doc.setFontSize(10)
+        const sLines = doc.splitTextToSize(itemText, CW - 10)
+        doc.setFontSize(8.5)
+        const eLines = doc.splitTextToSize(itemExpl, CW - 10)
 
+        const blockH =
+          7 +                      // header row (checkbox + outcome + constraints)
+          sLines.length * 5 + 3 +  // scenario text
+          eLines.length * 4.5 +    // explanation
+          (citationIds.length ? 5 : 0) +  // citation line
+          10                       // separator + gap
+
+        y = checkPageBreak(y, blockH + 10)
+
+        // Checkbox for engineering sign-off
+        doc.setDrawColor(...C_DIM); doc.setLineWidth(0.35)
+        doc.rect(ML, y - 4, 4, 4)
+
+        // Outcome badge
         doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor(...oc)
-        doc.text(`[${item.outcome.toUpperCase()}]`, ML + 6, y)
+        doc.text(`[${item.outcome.toUpperCase()}]`, ML + 7, y)
+
+        // Scenario number
+        doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(...C_DIM)
+        doc.text(String(scenarioIdx + 1).padStart(2, '0'), ML + 7 + 28, y)
+
+        // Constraint chips
         if (item.constraintsInvolved?.length > 0) {
-          doc.setTextColor(...C_BLUE)
-          doc.text(item.constraintsInvolved.join(', '), ML + 6 + 26, y)
+          doc.setFont('helvetica', 'bold'); doc.setFontSize(8); doc.setTextColor(...C_BLUE)
+          doc.text(item.constraintsInvolved.join('  '), ML + 7 + 38, y)
         }
-        y += 5.5
+        y += 6
 
-        doc.setFont('helvetica', 'normal'); doc.setFontSize(10); doc.setTextColor(...C_WHITE)
-        const sLines = doc.splitTextToSize(item.scenario, CW - 8)
-        doc.text(sLines, ML + 6, y); y += sLines.length * 5 + 2
+        // Full scenario text
+        doc.setFont('helvetica', 'bold'); doc.setFontSize(10); doc.setTextColor(...C_WHITE)
+        doc.text(sLines, ML + 7, y); y += sLines.length * 5 + 3
 
-        doc.setFont('helvetica', 'italic'); doc.setFontSize(8.5); doc.setTextColor(...C_DIM)
-        const eLines = doc.splitTextToSize(item.explanation, CW - 8)
-        doc.text(eLines, ML + 6, y); y += eLines.length * 4.5 + 8
+        // Full explanation
+        doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5); doc.setTextColor(...C_DIM)
+        doc.text(eLines, ML + 7, y); y += eLines.length * 4.5
 
-        faintHr(y - 4)
+        // Inline citation IDs — each a clickable hyperlink to its source_url
+        if (citationIds.length) {
+          y += 1
+          doc.setFont('helvetica', 'bold'); doc.setFontSize(7); doc.setTextColor(...C_BLUE)
+          let cx = ML + 7
+          citationIds.forEach((cid) => {
+            const refEntry = getEntryById(cid)
+            const tag = `[${cid}]`
+            const tagW = doc.getTextWidth(tag)
+            doc.text(tag, cx, y)
+            if (refEntry?.source_url) {
+              doc.link(cx, y - 2.5, tagW, 3, { url: refEntry.source_url })
+            }
+            cx += tagW + 1.5
+          })
+          y += 4
+        }
+
+        y += 6
+        faintHr(y - 3); y += 4
       })
     }
 
     doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(...C_DIM)
     doc.text(
-      `AXIOM Proof of Concept — Not for operational use  |  ${new Date().toISOString()}`,
+      `AXIOM Proof of Concept -- Not for operational use  |  ${new Date().toISOString()}`,
       W / 2, H - 18, { align: 'center' }
     )
+
+
+    // ── PAGE 6: DATA SOURCES ─────────────────────────────────────────────────
+    if (retrievedSources.length > 0) {
+      newPage()
+      y = ML + 8
+
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(13); doc.setTextColor(...C_BLUE)
+      doc.text('05 / DATA SOURCES', ML, y)
+      y += 5; hr(y); y += 8
+
+      doc.setFont('helvetica', 'italic'); doc.setFontSize(9); doc.setTextColor(...C_DIM)
+      const dsNote = doc.splitTextToSize(
+        'The following verified NASA and ESA sources informed the adversarial stress test analysis.',
+        CW
+      )
+      doc.text(dsNote, ML, y); y += dsNote.length * 5 + 6
+      hr(y); y += 8
+
+      retrievedSources.forEach((entry) => {
+        y = checkPageBreak(y, 40)
+        doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor(...C_BLUE)
+        doc.text(`[${entry.id}]`, ML, y)
+        y += 5
+        doc.setFont('helvetica', 'bold'); doc.setFontSize(10); doc.setTextColor(...C_WHITE)
+        const titleLines = doc.splitTextToSize(entry.title, CW - 4)
+        doc.text(titleLines, ML + 2, y); y += titleLines.length * 5 + 2
+        doc.setFont('helvetica', 'italic'); doc.setFontSize(8.5); doc.setTextColor(...C_DIM)
+        const srcLines = doc.splitTextToSize(entry.source_document, CW - 4)
+        doc.text(srcLines, ML + 2, y); y += srcLines.length * 4.5 + 2
+        doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(...C_BLUE)
+        const urlLines = doc.splitTextToSize(entry.source_url, CW - 4)
+        urlLines.forEach((line, li) => {
+          const lineY = y + li * 4.5
+          doc.text(line, ML + 2, lineY)
+          doc.link(ML + 2, lineY - 3, doc.getTextWidth(line), 3.5, { url: entry.source_url })
+        })
+        y += urlLines.length * 4.5 + 6
+        faintHr(y - 3)
+      })
+    }
+
 
     // Post-processing: stamp footers on every page using its real page number
     const totalPages = doc.getNumberOfPages()
@@ -933,6 +1048,39 @@ function Stage3({ missionData, constraints, onAddConstraint }) {
             <span className="axiom-summary-gap">■ GAP: {counts.gap}</span>
           </div>
 
+          {retrievedSources.length > 0 && (
+            <div className="axiom-data-sources">
+              <button
+                className="axiom-sources-header"
+                onClick={() => setSourcesOpen((o) => !o)}
+              >
+                <span className="axiom-sources-label">↗ REFERENCE DATA</span>
+                <span className="axiom-sources-chevron">{sourcesOpen ? '▲' : '▼'}</span>
+              </button>
+              {sourcesOpen && (
+                <div className="axiom-sources-list">
+                  {retrievedSources.map((entry) => (
+                    <div key={entry.id} className="axiom-sources-row">
+                      <span className="axiom-citation-id">{entry.id}</span>
+                      <div className="axiom-sources-row-info">
+                        <span className="axiom-sources-title">{entry.title}</span>
+                        <span className="axiom-citation-source">{entry.source_document}</span>
+                      </div>
+                      <a
+                        href={entry.source_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="axiom-citation-link"
+                      >
+                        →
+                      </a>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
           {scenarios.map((s, i) => {
             const colors = OUTCOME_COLORS[s.outcome] || OUTCOME_COLORS.gap
             const fixState = fixStates[i] || {}
@@ -964,6 +1112,44 @@ function Stage3({ missionData, constraints, onAddConstraint }) {
                 )}
 
                 <div className="axiom-scenario-explanation">{s.explanation}</div>
+
+                {s.citations?.length > 0 && (
+                  <div className="axiom-citation-row">
+                    <button
+                      className="axiom-btn-sources"
+                      onClick={() =>
+                        setCitationOpen((prev) => ({ ...prev, [i]: !prev[i] }))
+                      }
+                    >
+                      ↗ SOURCES ({s.citations.length})
+                    </button>
+                    {citationOpen[i] && (
+                      <div className="axiom-citation-panel">
+                        {s.citations.map((cid) => {
+                          const entry = getEntryById(cid)
+                          if (!entry) return null
+                          return (
+                            <div key={cid} className="axiom-citation-entry">
+                              <span className="axiom-citation-id">{cid}</span>
+                              <div className="axiom-citation-info">
+                                <span className="axiom-citation-title">{entry.title}</span>
+                                <span className="axiom-citation-source">{entry.source_document}</span>
+                              </div>
+                              <a
+                                href={entry.source_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="axiom-citation-link"
+                              >
+                                View Source →
+                              </a>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {canFix && !fixState.accepted && (
                   <div className="axiom-fix-row">

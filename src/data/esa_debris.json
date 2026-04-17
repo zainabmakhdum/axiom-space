@@ -1,0 +1,62 @@
+[
+  {
+    "id": "ESA-LEO-001",
+    "regime": "LEO",
+    "regime_keywords": ["low earth orbit", "LEO", "orbital survey", "earth observation", "polar orbit", "sun-synchronous", "SSO"],
+    "title": "LEO Debris Population — Verified ESA DISCOS Data",
+    "key_facts": "24,998 total tracked objects in LEO as of January 2026. Of these, 14,887 are active payloads. 4,587 are payload fragmentation debris. 957 are rocket bodies. 3,568 are rocket fragmentation debris. Altitude bands 500-600km are most congested — two-thirds of all active satellites operate here. MASTER-8 model estimates 1.2 million objects 1-10cm in LEO (untracked, capable of catastrophic damage).",
+    "conjunction_risk": "Number of conjunction alerts per satellite per year increases with altitude up to ~800km. At 500-600km a typical satellite is more likely to collide with another active satellite than with debris. Collision avoidance maneuvers are increasing year-over-year across the LEO population.",
+    "constraint_implication": "Debris exclusion constraints in LEO must account for both tracked catalog objects AND statistical probability of untracked objects. A hard distance threshold against tracked objects only leaves significant untracked risk unaddressed. ESA recommends probabilistic conjunction assessment, not deterministic distance thresholds alone.",
+    "source_url": "https://sdup.esoc.esa.int/discosweb/statistics/",
+    "source_document": "ESA DISCOS Space Environment Statistics, last updated January 16 2026",
+    "source_verified": true
+  },
+  {
+    "id": "ESA-LEO-002",
+    "regime": "Polar LEO",
+    "regime_keywords": ["polar orbit", "polar LEO", "sun-synchronous", "SSO", "lunar polar", "south pole", "north pole", "inclination"],
+    "title": "Polar and SSO Debris Risk Profile",
+    "key_facts": "Polar and sun-synchronous orbits have elevated debris encounter rates due to the geometry of crossing orbital planes. All satellites at all inclinations pass through polar regions, creating dense crossing zones. Fragmentation events in polar orbits create debris rings that intersect all other orbital planes. The 2021 Russian ASAT test added over 1,500 tracked fragments primarily in polar inclinations, with debris persisting for years.",
+    "conjunction_risk": "Polar orbits experience debris from ALL inclinations crossing their path. This makes polar debris environments statistically more hazardous per unit time than equatorial orbits at the same altitude. Untracked fragments from ASAT tests and micrometeoroid impacts are particularly prevalent.",
+    "constraint_implication": "Debris constraints for polar orbit missions must account for cross-plane conjunction risk — debris approaches from any azimuth, not just co-planar objects. The 2021 ASAT fragmentation event is a documented real-world case where a single event created thousands of conjunction threats across polar LEO missions.",
+    "source_url": "https://www.esa.int/Space_Safety/Space_Debris/ESA_Space_Environment_Report_2025",
+    "source_document": "ESA Space Environment Report 2025, Issue 9, released March 31 2025",
+    "source_verified": true
+  },
+  {
+    "id": "ESA-LUNAR-001",
+    "regime": "Lunar Orbit",
+    "regime_keywords": ["lunar orbit", "lunar polar", "moon", "lunar south pole", "cislunar", "Artemis", "lunar survey"],
+    "title": "Lunar Orbital Debris Environment",
+    "key_facts": "Unlike Earth orbit, no formal operational debris tracking catalog exists for lunar orbit. No equivalent of the US Space Surveillance Network monitors cislunar space. Objects in lunar orbit are subject to lunar gravitational perturbations (mascons — mass concentrations) that cause unpredictable orbital evolution. Lunar mascons can cause orbit decay of hundreds of meters per orbit in polar lunar orbits, requiring frequent station-keeping. Natural micrometeoroid flux at the lunar surface is unshielded by atmosphere.",
+    "conjunction_risk": "Debris constraints referencing tracked catalog objects have no catalog to reference in lunar orbit. All conjunction risk assessment must rely on statistical models or known mission histories. Mascon-induced orbital perturbations mean nominal trajectories drift significantly from predicted paths, increasing effective conjunction uncertainty.",
+    "constraint_implication": "Any debris avoidance constraint referencing tracked objects is fundamentally limited in lunar orbit — the tracking infrastructure does not exist. Constraints must either reference known object ephemerides from individual mission operators, or use probabilistic standoff distances that account for navigation uncertainty rather than catalog-based conjunction assessment.",
+    "source_url": "https://sdup.esoc.esa.int/discosweb/statistics/",
+    "source_document": "ESA DISCOS Space Environment Statistics + ESA Space Environment Report 2025",
+    "source_verified": true
+  },
+  {
+    "id": "ESA-FRAG-001",
+    "regime": "All",
+    "regime_keywords": ["debris", "fragmentation", "ASAT", "collision", "breakup", "untracked"],
+    "title": "Fragmentation Events and Untracked Debris",
+    "key_facts": "More than 650 fragmentation events documented in Earth orbit history. 2024 saw several major fragmentation events adding over 3,000 new tracked objects in one year. 140 million objects estimated between 1mm-1cm — capable of damaging spacecraft but too small to track. Four confirmed collision events between catalogued objects in history. ASAT tests have been a major contributor to untracked debris clouds.",
+    "conjunction_risk": "Fragmentation events create debris clouds that persist for years to decades depending on altitude. Objects created in a fragmentation event are not immediately catalogued — there is a lag of days to weeks before new fragments appear in tracking catalogs. During this window, spacecraft in the affected orbital regime face elevated untracked conjunction risk with no catalog-based warning.",
+    "constraint_implication": "Constraints that only govern tracked debris have a documented real-world failure mode: fragmentation events create thousands of untracked objects that pose immediate collision risk before catalog integration. Mission constraints should specify behavior for both tracked and untracked hazard scenarios.",
+    "source_url": "https://sdup.esoc.esa.int/discosweb/statistics/",
+    "source_document": "ESA DISCOS Space Environment Statistics, January 2026 + ESA Space Environment Report 2025",
+    "source_verified": true
+  },
+  {
+    "id": "ESA-CONJ-001",
+    "regime": "LEO",
+    "regime_keywords": ["conjunction", "collision avoidance", "maneuver", "avoidance burn", "CAM", "debris avoidance"],
+    "title": "Conjunction Assessment and Avoidance Maneuver Statistics",
+    "key_facts": "Number of conjunction alerts triggering avoidance procedures is increasing year-over-year across LEO. Not all alerts require evasive action — operators use probability-of-collision thresholds (typically 1-in-10,000) to decide whether to maneuver. ESA's Space Debris Office recommends probability-of-collision based assessment rather than hard distance thresholds. A single avoidance maneuver consumes propellant and may alter mission orbit, requiring recovery burns.",
+    "conjunction_risk": "Collision avoidance maneuvers have cascading resource costs — propellant, power for attitude control, potential comm window disruption, and science opportunity loss. These secondary costs are rarely encoded in mission constraint sets, creating hidden conflicts between safety constraints and operational constraints.",
+    "constraint_implication": "Debris avoidance constraints that mandate maneuvers without specifying resource budget implications create systematic conflicts with power and operations constraints. Real operational practice uses probability-of-collision thresholds, not hard distance limits, and accounts for maneuver resource costs in mission planning.",
+    "source_url": "https://www.esa.int/Space_Safety/Space_Debris/ESA_Space_Environment_Report_2025",
+    "source_document": "ESA Space Environment Report 2025, Issue 9",
+    "source_verified": true
+  }
+]
