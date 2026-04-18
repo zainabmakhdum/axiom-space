@@ -2087,6 +2087,43 @@ body {
   text-decoration-color: rgba(255, 255, 255, 0.75);
 }
 
+/* ─── Drawer: Responsible Use Tab ────────────────────────────────────────────── */
+
+.axiom-responsible-card {
+  background: rgba(255, 255, 255, 0.04);
+  border-left: 2px solid rgba(255, 179, 0, 0.4);
+  border-radius: 0 4px 4px 0;
+  padding: 11px 14px;
+  margin-bottom: 10px;
+}
+
+.axiom-responsible-card h3 {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0 0 7px !important;
+}
+
+.axiom-responsible-warn {
+  color: rgba(255, 179, 0, 0.85);
+  font-size: 11px;
+  flex-shrink: 0;
+}
+
+.axiom-responsible-card p {
+  margin: 0;
+}
+
+.axiom-responsible-footer {
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.28);
+  text-align: center;
+  margin-top: 18px !important;
+  margin-bottom: 0 !important;
+  letter-spacing: 0.03em;
+}
+
 /* ─── Radar Sweep (Stage 3 loading) ──────────────────────────────────────────── */
 
 @keyframes radarSpin {

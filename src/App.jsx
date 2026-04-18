@@ -80,6 +80,7 @@ function Drawer({ open, onClose }) {
             { key: 'solution', label: 'The Solution' },
             { key: 'demo', label: 'Demo' },
             { key: 'sources', label: 'Data Sources' },
+            { key: 'responsible', label: 'Responsible Use' },
           ].map(({ key, label }) => (
             <button
               key={key}
@@ -146,6 +147,46 @@ function Drawer({ open, onClose }) {
                   </a>
                 ))}
               </div>
+            </div>
+          )}
+          {tab === 'responsible' && (
+            <div className="axiom-drawer-section">
+              {[
+                {
+                  header: 'INTENDED USE',
+                  body: 'AXIOM is a proof of concept designed for research and prototyping with publicly available mission parameters, fictional scenarios, and synthetic data. It is not certified for operational mission planning.',
+                },
+                {
+                  header: 'DATA TRANSMISSION',
+                  body: "All mission objectives, constraint text, and stress test inputs are transmitted to Anthropic's API servers for processing by Claude. Do not enter classified, ITAR-controlled, export-restricted, or proprietary mission data. Review Anthropic's usage policies at anthropic.com/legal/privacy before use with sensitive information.",
+                },
+                {
+                  header: 'KNOWN LIMITATIONS',
+                  body: "Stress test coverage is bounded by 15 verified NASA and ESA knowledge base entries and Claude's training data. Novel mission architectures with no historical analog may produce incomplete scenario coverage. Scenario outcomes are illustrative of potential failure modes — not a comprehensive safety audit. All results should be validated by qualified mission engineers before informing any operational decision.",
+                },
+                {
+                  header: 'HUMAN OVERSIGHT REQUIREMENT',
+                  body: 'AXIOM is designed as a human-in-the-loop tool. Every constraint, accepted fix, and exported document requires explicit human review and approval. No autonomous action is taken without user confirmation. The refinement loop is intentionally iterative — the tool surfaces issues for human judgment, it does not resolve them autonomously.',
+                },
+                {
+                  header: 'DATA SECURITY',
+                  body: 'AXIOM transmits only the minimum data required for each API call. Mission state is stored exclusively in browser memory and cleared on session end. No user data is persisted to any external database, third-party analytics, or logging service. The share results feature encodes session state as base64 in the URL — this is not encryption. Do not use the share feature with sensitive mission data.',
+                },
+                {
+                  header: 'AUDIT TRAIL',
+                  body: 'Every exported Mission Constraint Document is timestamped and includes the full constraint registry, stress test results, accepted fixes, and cited data sources with direct links to primary documents. The PDF serves as a human-readable audit record of the constraint specification process — reviewable, citable, and independent of the AXIOM application.',
+                },
+                {
+                  header: 'ITAR NOTICE',
+                  body: 'Most real spacecraft mission parameters are subject to International Traffic in Arms Regulations (ITAR). AXIOM has not been reviewed for ITAR compliance. Users are solely responsible for ensuring their inputs comply with applicable export control laws.',
+                },
+              ].map(({ header, body }) => (
+                <div key={header} className="axiom-responsible-card">
+                  <h3><span className="axiom-responsible-warn">⚠</span>{header}</h3>
+                  <p>{body}</p>
+                </div>
+              ))}
+              <p className="axiom-responsible-footer">AXIOM Proof of Concept — Not for operational use</p>
             </div>
           )}
         </div>
