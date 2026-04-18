@@ -3,18 +3,27 @@
 /* ─── CSS Variables ──────────────────────────────────────────────────────────── */
 
 :root {
-  --bg-deep: #010814;
-  --bg-mid: #020f24;
-  --bg-surface: #061530;
-  --blue-bright: #4FC3F7;
-  --blue-mid: #0288D1;
-  --blue-deep: #01579B;
-  --blue-glow: rgba(79, 195, 247, 0.15);
-  --white: #F0F8FF;
-  --white-dim: rgba(240, 248, 255, 0.6);
-  --white-faint: rgba(240, 248, 255, 0.15);
-  --border: rgba(79, 195, 247, 0.2);
-  --border-bright: rgba(79, 195, 247, 0.5);
+  --bg-deep:      #000308;
+  --bg-mid:       #010510;
+  --bg-surface:   #070d1e;
+
+  /* Accent — remapped to white */
+  --blue-bright:  #ffffff;
+  --blue-mid:     rgba(255, 255, 255, 0.55);
+  --blue-deep:    #060c1a;
+  --blue-glow:    rgba(255, 255, 255, 0.05);
+
+  /* Text */
+  --white:        #ffffff;
+  --white-dim:    rgba(255, 255, 255, 0.6);
+  --white-faint:  rgba(255, 255, 255, 0.18);
+
+  /* Borders */
+  --border:       rgba(255, 255, 255, 0.11);
+  --border-bright:rgba(255, 255, 255, 0.32);
+
+  /* Active highlight (blue-tinted white) */
+  --accent-active: #E8F4FD;
 }
 
 /* ─── Reset ──────────────────────────────────────────────────────────────────── */
@@ -25,10 +34,20 @@
   padding: 0;
 }
 
+/* ─── Galaxy Background ──────────────────────────────────────────────────────── */
+
 body {
-  background: radial-gradient(ellipse at 50% 40%, var(--bg-mid) 0%, var(--bg-deep) 100%);
+  background:
+    radial-gradient(ellipse at 20% 50%,  rgba(120,  40, 200, 0.08) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%,  rgba( 40,  80, 200, 0.10) 0%, transparent 40%),
+    radial-gradient(ellipse at 60% 80%,  rgba( 80,  20, 160, 0.07) 0%, transparent 45%),
+    radial-gradient(ellipse at 40% 10%,  rgba( 20,  60, 180, 0.08) 0%, transparent 35%),
+    radial-gradient(ellipse at 90% 70%,  rgba( 60,  20, 140, 0.06) 0%, transparent 40%),
+    linear-gradient(180deg, #00020c 0%, #00030e 30%, #00020a 60%, #00030d 100%);
+  background-attachment: fixed;
   min-height: 100vh;
-  font-family: 'Rajdhani', sans-serif;
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
   color: var(--white);
 }
 
@@ -41,74 +60,67 @@ body {
 
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: var(--bg-deep); }
-::-webkit-scrollbar-thumb { background: var(--blue-mid); border-radius: 2px; }
-::-webkit-scrollbar-thumb:hover { background: var(--blue-bright); }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.18); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.38); }
 
 /* ─── Animations ─────────────────────────────────────────────────────────────── */
 
 @keyframes twinkle {
   0%, 100% { opacity: 0.15; }
-  50% { opacity: 0.9; }
+  50%       { opacity: 0.40; }
 }
 
-@keyframes twinkle2 {
-  0%, 100% { opacity: 0.7; }
-  50% { opacity: 0.1; }
-}
-
-@keyframes twinkle3 {
-  0% { opacity: 0.1; }
-  33% { opacity: 0.6; }
-  66% { opacity: 0.2; }
-  100% { opacity: 0.1; }
+@keyframes twinkleLarge {
+  0%, 100% { opacity: 0.20; }
+  50%       { opacity: 0.55; }
 }
 
 @keyframes fadeIn {
   from { opacity: 0; }
-  to { opacity: 1; }
+  to   { opacity: 1; }
 }
 
 @keyframes slideUp {
   from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+  to   { opacity: 1; transform: translateY(0);    }
 }
 
 @keyframes slideInLeft {
   from { opacity: 0; transform: translateX(-18px); }
-  to { opacity: 1; transform: translateX(0); }
+  to   { opacity: 1; transform: translateX(0);     }
 }
 
 @keyframes heroZoom {
   from { transform: scale(1.05); opacity: 0.6; }
-  to { transform: scale(1.0); opacity: 1; }
+  to   { transform: scale(1.0);  opacity: 1;   }
 }
 
 @keyframes scrollBounce {
-  0%, 100% { transform: translateY(0); opacity: 1; }
-  50% { transform: translateY(10px); opacity: 0.4; }
+  0%,100% { transform: translateY(0);    opacity: 1;   }
+  50%     { transform: translateY(10px); opacity: 0.4; }
 }
 
 @keyframes glowPulse {
-  0%, 100% { box-shadow: 0 0 8px var(--blue-bright), 0 0 20px var(--blue-glow); }
-  50% { box-shadow: 0 0 18px var(--blue-bright), 0 0 45px rgba(79, 195, 247, 0.35); }
+  0%,100% { box-shadow: 0 0  8px rgba(255,255,255,0.35), 0 0 20px rgba(255,255,255,0.10); }
+  50%     { box-shadow: 0 0 18px rgba(255,255,255,0.55), 0 0 45px rgba(255,255,255,0.18); }
 }
 
 @keyframes navDotPulse {
-  0%, 100% { opacity: 1; box-shadow: 0 0 8px var(--blue-bright); }
-  50% { opacity: 0.35; box-shadow: 0 0 3px var(--blue-bright); }
+  0%,100% { opacity: 1;    box-shadow: 0 0 8px rgba(255,255,255,0.75); }
+  50%     { opacity: 0.35; box-shadow: 0 0 3px rgba(255,255,255,0.25); }
 }
 
 @keyframes scanLine {
-  0% { top: -2px; }
+  0%   { top: -2px; }
   100% { top: calc(100% + 2px); }
 }
 
 @keyframes spin {
   from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  to   { transform: rotate(360deg); }
 }
 
-/* ─── Star Background (page-wide) ───────────────────────────────────────────── */
+/* ─── Star Background ────────────────────────────────────────────────────────── */
 
 .axiom-stars-bg {
   position: fixed;
@@ -118,74 +130,228 @@ body {
   overflow: hidden;
 }
 
+/* Layer 1 — ~150 small 1px circular stars, no animation */
 .axiom-stars-bg::before {
   content: '';
   position: absolute;
   width: 1px;
   height: 1px;
+  border-radius: 50%;
   box-shadow:
-    92px 180px 0 1px rgba(255,255,255,0.75),
-    243px 47px 0 1px rgba(255,255,255,0.55),
-    478px 312px 0 1px rgba(255,255,255,0.85),
-    112px 589px 0 1px rgba(255,255,255,0.5),
-    867px 123px 0 1px rgba(255,255,255,0.65),
-    1234px 456px 0 1px rgba(255,255,255,0.8),
-    789px 678px 0 1px rgba(255,255,255,0.4),
-    345px 890px 0 1px rgba(255,255,255,0.9),
-    1456px 234px 0 1px rgba(255,255,255,0.6),
-    678px 45px 0 1px rgba(255,255,255,0.7),
-    1567px 789px 0 1px rgba(255,255,255,0.5),
-    234px 1023px 0 1px rgba(255,255,255,0.8),
-    901px 345px 0 1px rgba(255,255,255,0.6),
-    1678px 567px 0 1px rgba(255,255,255,0.9),
-    456px 678px 0 1px rgba(255,255,255,0.45),
-    1789px 123px 0 1px rgba(255,255,255,0.7),
-    123px 890px 0 1px rgba(255,255,255,0.8),
-    567px 234px 0 1px rgba(255,255,255,0.55),
-    1890px 456px 0 1px rgba(255,255,255,0.65),
-    789px 789px 0 1px rgba(255,255,255,0.9),
-    1100px 50px 0 1px rgba(255,255,255,0.6),
-    330px 770px 0 1px rgba(255,255,255,0.7);
-  animation: twinkle 4.2s infinite;
+    73px 124px 0 0 rgba(255,255,255,0.78),
+    189px  67px 0 0 rgba(255,255,255,0.52),
+    347px 412px 0 0 rgba(255,255,255,0.85),
+     92px 789px 0 0 rgba(255,255,255,0.48),
+    561px  38px 0 0 rgba(255,255,255,0.70),
+    834px 203px 0 0 rgba(255,255,255,0.62),
+   1127px 477px 0 0 rgba(255,255,255,0.55),
+    278px 631px 0 0 rgba(255,255,255,0.80),
+    714px 842px 0 0 rgba(255,255,255,0.44),
+   1389px  91px 0 0 rgba(255,255,255,0.73),
+    456px 318px 0 0 rgba(255,255,255,0.67),
+   1672px 529px 0 0 rgba(255,255,255,0.58),
+    139px 954px 0 0 rgba(255,255,255,0.82),
+    923px 175px 0 0 rgba(255,255,255,0.50),
+   1243px 713px 0 0 rgba(255,255,255,0.76),
+    609px 561px 0 0 rgba(255,255,255,0.42),
+   1810px 288px 0 0 rgba(255,255,255,0.65),
+    384px 748px 0 0 rgba(255,255,255,0.88),
+   1056px 923px 0 0 rgba(255,255,255,0.47),
+    768px  14px 0 0 rgba(255,255,255,0.71),
+   1534px 642px 0 0 rgba(255,255,255,0.54),
+    217px 479px 0 0 rgba(255,255,255,0.79),
+    997px 356px 0 0 rgba(255,255,255,0.61),
+   1178px  82px 0 0 rgba(255,255,255,0.83),
+    451px 1031px 0 0 rgba(255,255,255,0.46),
+   1723px 174px 0 0 rgba(255,255,255,0.69),
+    836px 688px 0 0 rgba(255,255,255,0.57),
+    145px 247px 0 0 rgba(255,255,255,0.74),
+   1309px 891px 0 0 rgba(255,255,255,0.51),
+    672px 129px 0 0 rgba(255,255,255,0.87),
+   1891px 456px 0 0 rgba(255,255,255,0.43),
+    321px 815px 0 0 rgba(255,255,255,0.66),
+   1045px 234px 0 0 rgba(255,255,255,0.78),
+    587px 967px 0 0 rgba(255,255,255,0.53),
+   1456px  37px 0 0 rgba(255,255,255,0.72),
+    234px 543px 0 0 rgba(255,255,255,0.60),
+    889px 778px 0 0 rgba(255,255,255,0.84),
+   1234px 412px 0 0 rgba(255,255,255,0.49),
+    512px 189px 0 0 rgba(255,255,255,0.76),
+   1678px 734px 0 0 rgba(255,255,255,0.55),
+     28px 673px 0 0 rgba(255,255,255,0.81),
+   1123px 511px 0 0 rgba(255,255,255,0.45),
+    743px  98px 0 0 rgba(255,255,255,0.70),
+   1567px 318px 0 0 rgba(255,255,255,0.63),
+    398px  63px 0 0 rgba(255,255,255,0.86),
+    964px 847px 0 0 rgba(255,255,255,0.41),
+   1789px 152px 0 0 rgba(255,255,255,0.68),
+    178px 1017px 0 0 rgba(255,255,255,0.56),
+   1347px 629px 0 0 rgba(255,255,255,0.77),
+    651px 463px 0 0 rgba(255,255,255,0.50),
+    89px 382px 0 0 rgba(255,255,255,0.82),
+   1089px 751px 0 0 rgba(255,255,255,0.44),
+    476px 894px 0 0 rgba(255,255,255,0.71),
+   1832px 573px 0 0 rgba(255,255,255,0.59),
+    263px 127px 0 0 rgba(255,255,255,0.85),
+    817px 439px 0 0 rgba(255,255,255,0.48),
+   1512px 867px 0 0 rgba(255,255,255,0.73),
+    539px 712px 0 0 rgba(255,255,255,0.62),
+   1234px 201px 0 0 rgba(255,255,255,0.80),
+    107px 556px 0 0 rgba(255,255,255,0.47),
+    963px  43px 0 0 rgba(255,255,255,0.67),
+   1678px 388px 0 0 rgba(255,255,255,0.54),
+    342px 934px 0 0 rgba(255,255,255,0.88),
+   1156px 616px 0 0 rgba(255,255,255,0.43),
+    729px 283px 0 0 rgba(255,255,255,0.76),
+   1423px  78px 0 0 rgba(255,255,255,0.65),
+    214px 789px 0 0 rgba(255,255,255,0.84),
+    856px 987px 0 0 rgba(255,255,255,0.51),
+   1890px  22px 0 0 rgba(255,255,255,0.70),
+    482px 349px 0 0 rgba(255,255,255,0.58),
+   1267px 824px 0 0 rgba(255,255,255,0.79),
+    618px 598px 0 0 rgba(255,255,255,0.46),
+   1734px 467px 0 0 rgba(255,255,255,0.72),
+     47px 856px 0 0 rgba(255,255,255,0.85),
+   1012px 143px 0 0 rgba(255,255,255,0.53),
+    389px 671px 0 0 rgba(255,255,255,0.68),
+   1589px 248px 0 0 rgba(255,255,255,0.42),
+    756px 912px 0 0 rgba(255,255,255,0.77),
+    194px  31px 0 0 rgba(255,255,255,0.61),
+   1345px 557px 0 0 rgba(255,255,255,0.83),
+    627px  88px 0 0 rgba(255,255,255,0.49),
+   1812px 743px 0 0 rgba(255,255,255,0.66),
+    453px 486px 0 0 rgba(255,255,255,0.75),
+   1078px 363px 0 0 rgba(255,255,255,0.52),
+    891px 634px 0 0 rgba(255,255,255,0.87),
+    312px 198px 0 0 rgba(255,255,255,0.44),
+   1623px 918px 0 0 rgba(255,255,255,0.69),
+    567px 741px 0 0 rgba(255,255,255,0.57),
+   1189px  29px 0 0 rgba(255,255,255,0.80),
+     78px 427px 0 0 rgba(255,255,255,0.48),
+   1456px 672px 0 0 rgba(255,255,255,0.73),
+    734px 156px 0 0 rgba(255,255,255,0.62),
+   1867px 893px 0 0 rgba(255,255,255,0.45),
+    281px 518px 0 0 rgba(255,255,255,0.78),
+   1023px 789px 0 0 rgba(255,255,255,0.55),
+    614px 352px 0 0 rgba(255,255,255,0.86),
+   1378px 134px 0 0 rgba(255,255,255,0.50),
+    167px 963px 0 0 rgba(255,255,255,0.71),
+    943px 478px 0 0 rgba(255,255,255,0.64),
+   1712px  67px 0 0 rgba(255,255,255,0.82),
+    428px 824px 0 0 rgba(255,255,255,0.43),
+   1156px 542px 0 0 rgba(255,255,255,0.76),
+    689px 217px 0 0 rgba(255,255,255,0.59),
+   1534px 789px 0 0 rgba(255,255,255,0.47),
+    234px  94px 0 0 rgba(255,255,255,0.85),
+    978px 634px 0 0 rgba(255,255,255,0.53),
+   1289px 378px 0 0 rgba(255,255,255,0.70),
+    512px 1042px 0 0 rgba(255,255,255,0.61),
+   1845px 231px 0 0 rgba(255,255,255,0.78),
+    356px 567px 0 0 rgba(255,255,255,0.46),
+   1067px  98px 0 0 rgba(255,255,255,0.84),
+    789px 879px 0 0 rgba(255,255,255,0.52),
+   1423px 456px 0 0 rgba(255,255,255,0.67),
+    145px 312px 0 0 rgba(255,255,255,0.75),
+    867px 723px 0 0 rgba(255,255,255,0.41),
+   1678px 167px 0 0 rgba(255,255,255,0.88),
+    501px 441px 0 0 rgba(255,255,255,0.56),
+   1234px 956px 0 0 rgba(255,255,255,0.72),
+    712px 514px 0 0 rgba(255,255,255,0.49),
+   1901px 345px 0 0 rgba(255,255,255,0.65),
+    358px 731px 0 0 rgba(255,255,255,0.83),
+   1089px 189px 0 0 rgba(255,255,255,0.44),
+    623px 618px 0 0 rgba(255,255,255,0.77),
+   1567px 834px 0 0 rgba(255,255,255,0.58),
+     19px 178px 0 0 rgba(255,255,255,0.81),
+   1312px 712px 0 0 rgba(255,255,255,0.50),
+    847px  54px 0 0 rgba(255,255,255,0.68),
+    437px 897px 0 0 rgba(255,255,255,0.74),
+   1756px 623px 0 0 rgba(255,255,255,0.43),
+    278px 268px 0 0 rgba(255,255,255,0.86),
+   1012px 498px 0 0 rgba(255,255,255,0.55),
+    689px 367px 0 0 rgba(255,255,255,0.79),
+   1478px  12px 0 0 rgba(255,255,255,0.62),
+    156px 834px 0 0 rgba(255,255,255,0.47),
+    934px 271px 0 0 rgba(255,255,255,0.84),
+   1623px 478px 0 0 rgba(255,255,255,0.53),
+    523px 159px 0 0 rgba(255,255,255,0.71),
+   1867px 812px 0 0 rgba(255,255,255,0.41),
+    312px 645px 0 0 rgba(255,255,255,0.76),
+   1145px 389px 0 0 rgba(255,255,255,0.60),
+    678px 768px 0 0 rgba(255,255,255,0.87),
+   1389px 234px 0 0 rgba(255,255,255,0.48),
+     93px 512px 0 0 rgba(255,255,255,0.73);
 }
 
+/* Layer 2 — ~60 larger 2px circular stars, slow twinkle */
 .axiom-stars-bg::after {
   content: '';
   position: absolute;
   width: 1px;
   height: 1px;
+  border-radius: 50%;
   box-shadow:
-    1100px 200px 0 1px rgba(255,255,255,0.6),
-    550px 400px 0 1px rgba(255,255,255,0.8),
-    300px 700px 0 1px rgba(255,255,255,0.5),
-    1400px 100px 0 1px rgba(255,255,255,0.9),
-    750px 550px 0 1px rgba(255,255,255,0.4),
-    200px 300px 0 1px rgba(255,255,255,0.7),
-    1600px 400px 0 1px rgba(255,255,255,0.6),
-    400px 150px 0 1px rgba(255,255,255,0.8),
-    1000px 800px 0 1px rgba(255,255,255,0.5),
-    650px 250px 0 1px rgba(255,255,255,0.9),
-    1750px 600px 0 1px rgba(255,255,255,0.4),
-    850px 950px 0 1px rgba(255,255,255,0.7),
-    150px 500px 0 1px rgba(255,255,255,0.6),
-    1300px 750px 0 1px rgba(255,255,255,0.8),
-    700px 100px 0 1px rgba(255,255,255,0.5),
-    1850px 300px 0 1px rgba(255,255,255,0.9),
-    500px 850px 0 1px rgba(255,255,255,0.4),
-    1150px 450px 0 1px rgba(255,255,255,0.7),
-    350px 200px 0 1px rgba(255,255,255,0.6),
-    950px 650px 0 1px rgba(255,255,255,0.8),
-    1450px 850px 0 1px rgba(255,255,255,0.5),
-    75px 750px 0 1px rgba(255,255,255,0.9),
-    1200px 50px 0 1px rgba(255,255,255,0.45),
-    625px 450px 0 1px rgba(255,255,255,0.7),
-    1700px 200px 0 1px rgba(255,255,255,0.6),
-    875px 300px 0 1px rgba(255,255,255,0.8),
-    425px 600px 0 1px rgba(255,255,255,0.5),
-    1350px 900px 0 1px rgba(255,255,255,0.9),
-    725px 750px 0 1px rgba(255,255,255,0.4),
-    1800px 500px 0 1px rgba(255,255,255,0.7);
-  animation: twinkle2 6.8s infinite;
+    156px 234px 0 1px rgba(255,255,255,0.28),
+    478px  89px 0 1px rgba(255,255,255,0.22),
+    823px 567px 0 1px rgba(255,255,255,0.35),
+    312px 812px 0 1px rgba(255,255,255,0.18),
+   1234px 145px 0 1px rgba(255,255,255,0.30),
+    689px 423px 0 1px rgba(255,255,255,0.25),
+   1567px 678px 0 1px rgba(255,255,255,0.20),
+    967px  23px 0 1px rgba(255,255,255,0.38),
+    234px 456px 0 1px rgba(255,255,255,0.23),
+   1089px 867px 0 1px rgba(255,255,255,0.32),
+    534px 312px 0 1px rgba(255,255,255,0.19),
+   1723px 234px 0 1px rgba(255,255,255,0.28),
+    789px 734px 0 1px rgba(255,255,255,0.35),
+    123px  67px 0 1px rgba(255,255,255,0.22),
+   1345px 512px 0 1px rgba(255,255,255,0.30),
+    612px 945px 0 1px rgba(255,255,255,0.18),
+   1867px  89px 0 1px rgba(255,255,255,0.25),
+    378px 678px 0 1px rgba(255,255,255,0.38),
+   1012px 289px 0 1px rgba(255,255,255,0.21),
+    756px 156px 0 1px rgba(255,255,255,0.34),
+   1489px 823px 0 1px rgba(255,255,255,0.19),
+     67px 923px 0 1px rgba(255,255,255,0.28),
+   1234px 634px 0 1px rgba(255,255,255,0.23),
+    489px 478px 0 1px rgba(255,255,255,0.36),
+   1678px 345px 0 1px rgba(255,255,255,0.20),
+    234px 134px 0 1px rgba(255,255,255,0.31),
+    912px 789px 0 1px rgba(255,255,255,0.17),
+   1423px  45px 0 1px rgba(255,255,255,0.29),
+    567px 567px 0 1px rgba(255,255,255,0.38),
+   1145px 423px 0 1px rgba(255,255,255,0.22),
+    834px  89px 0 1px rgba(255,255,255,0.34),
+    167px 756px 0 1px rgba(255,255,255,0.19),
+   1789px 512px 0 1px rgba(255,255,255,0.27),
+    445px 234px 0 1px rgba(255,255,255,0.35),
+   1067px 678px 0 1px rgba(255,255,255,0.21),
+    712px 934px 0 1px rgba(255,255,255,0.30),
+   1534px 167px 0 1px rgba(255,255,255,0.18),
+    289px 512px 0 1px rgba(255,255,255,0.36),
+    978px 345px 0 1px rgba(255,255,255,0.24),
+   1312px 834px 0 1px rgba(255,255,255,0.29),
+    623px  23px 0 1px rgba(255,255,255,0.38),
+   1856px 678px 0 1px rgba(255,255,255,0.17),
+    389px 867px 0 1px rgba(255,255,255,0.32),
+   1178px 189px 0 1px rgba(255,255,255,0.22),
+    756px 512px 0 1px rgba(255,255,255,0.28),
+     34px 345px 0 1px rgba(255,255,255,0.35),
+   1623px 934px 0 1px rgba(255,255,255,0.19),
+    512px 712px 0 1px rgba(255,255,255,0.30),
+   1289px 278px 0 1px rgba(255,255,255,0.25),
+    845px 623px 0 1px rgba(255,255,255,0.18),
+   1478px 456px 0 1px rgba(255,255,255,0.34),
+    167px 189px 0 1px rgba(255,255,255,0.22),
+    934px  67px 0 1px rgba(255,255,255,0.38),
+   1712px 789px 0 1px rgba(255,255,255,0.20),
+    356px 423px 0 1px rgba(255,255,255,0.29),
+   1067px 956px 0 1px rgba(255,255,255,0.17),
+    689px 267px 0 1px rgba(255,255,255,0.33),
+   1389px 612px 0 1px rgba(255,255,255,0.21),
+    278px 978px 0 1px rgba(255,255,255,0.36),
+   1834px 134px 0 1px rgba(255,255,255,0.25);
+  animation: twinkleLarge 4.8s ease-in-out infinite;
 }
 
 /* ─── App Wrapper ────────────────────────────────────────────────────────────── */
@@ -204,7 +370,7 @@ body {
   left: 0;
   right: 0;
   z-index: 100;
-  background: rgba(1, 8, 20, 0.9);
+  background: rgba(0, 2, 12, 0.92);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-bottom: 1px solid var(--border);
@@ -230,29 +396,29 @@ body {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: var(--blue-bright);
-  box-shadow: 0 0 8px var(--blue-bright);
+  background: #ffffff;
+  box-shadow: 0 0 8px rgba(255,255,255,0.75);
   flex-shrink: 0;
   animation: navDotPulse 2s infinite;
 }
 
 .axiom-logo {
-  font-family: 'Orbitron', sans-serif;
+  font-family: 'Exo 2', sans-serif;
   font-weight: 700;
   font-size: 17px;
-  color: var(--white);
+  color: #ffffff;
   letter-spacing: 0.35em;
 }
 
 .axiom-nav-breadcrumb {
-  font-family: 'Rajdhani', sans-serif;
-  font-size: 13px;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
   color: var(--white-dim);
-  letter-spacing: 0.04em;
+  letter-spacing: 0.02em;
 }
 
 .axiom-breadcrumb-mission {
-  color: var(--blue-bright);
+  color: #ffffff;
   font-weight: 600;
 }
 
@@ -275,19 +441,19 @@ body {
 }
 
 .axiom-stage-dot.complete {
-  background: var(--blue-mid);
-  box-shadow: 0 0 6px var(--blue-mid);
+  background: rgba(255,255,255,0.55);
+  box-shadow: 0 0 6px rgba(255,255,255,0.3);
 }
 
 .axiom-stage-dot.active {
-  background: var(--blue-bright);
-  box-shadow: 0 0 12px var(--blue-bright);
+  background: #ffffff;
+  box-shadow: 0 0 12px rgba(255,255,255,0.75);
   animation: navDotPulse 1.5s infinite;
 }
 
 .axiom-stage-dot.inactive {
-  background: rgba(79, 195, 247, 0.15);
-  border: 1px solid var(--border);
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.18);
 }
 
 /* ─── Hero Section ───────────────────────────────────────────────────────────── */
@@ -313,16 +479,16 @@ body {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(circle, rgba(255,255,255,0.9) 1px, transparent 1px) 8% 12% / 220px 180px,
+    radial-gradient(circle, rgba(255,255,255,0.9) 1px, transparent 1px) 8%  12% / 220px 180px,
     radial-gradient(circle, rgba(255,255,255,0.7) 1px, transparent 1px) 38% 28% / 310px 260px,
-    radial-gradient(circle, rgba(255,255,255,0.8) 1px, transparent 1px) 68% 8% / 260px 200px,
+    radial-gradient(circle, rgba(255,255,255,0.8) 1px, transparent 1px) 68%  8% / 260px 200px,
     radial-gradient(circle, rgba(255,255,255,0.6) 1px, transparent 1px) 82% 50% / 190px 170px,
     radial-gradient(circle, rgba(255,255,255,0.9) 1px, transparent 1px) 18% 65% / 230px 210px,
     radial-gradient(circle, rgba(255,255,255,0.5) 1px, transparent 1px) 52% 78% / 290px 240px,
     radial-gradient(circle, rgba(255,255,255,0.8) 1px, transparent 1px) 92% 20% / 150px 130px,
-    radial-gradient(circle, rgba(255,255,255,0.6) 1px, transparent 1px) 5% 85% / 200px 160px;
+    radial-gradient(circle, rgba(255,255,255,0.6) 1px, transparent 1px)  5% 85% / 200px 160px;
   opacity: 0.35;
-  animation: twinkle3 9s infinite;
+  animation: twinkle 9s ease-in-out infinite;
 }
 
 .axiom-hero-bg {
@@ -339,12 +505,14 @@ body {
   position: absolute;
   inset: 0;
   z-index: 2;
-  background: linear-gradient(
-    to bottom,
-    rgba(1, 8, 20, 0.3) 0%,
-    rgba(1, 8, 20, 0.65) 55%,
-    rgba(1, 8, 20, 1) 100%
-  );
+  background:
+    radial-gradient(ellipse at 50% 100%, rgba(40, 20, 100, 0.12) 0%, transparent 60%),
+    linear-gradient(
+      to bottom,
+      rgba(0, 2, 12, 0.3)  0%,
+      rgba(0, 2, 12, 0.62) 55%,
+      rgba(0, 2, 12, 1.0)  100%
+    );
 }
 
 .axiom-hero-scanlines {
@@ -356,8 +524,8 @@ body {
     0deg,
     transparent,
     transparent 2px,
-    rgba(0, 0, 0, 0.025) 2px,
-    rgba(0, 0, 0, 0.025) 4px
+    rgba(0,0,0,0.025) 2px,
+    rgba(0,0,0,0.025) 4px
   );
 }
 
@@ -374,38 +542,37 @@ body {
 }
 
 .axiom-hero-supertitle {
-  font-family: 'Rajdhani', sans-serif;
-  font-size: 13px;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
   font-weight: 500;
   letter-spacing: 0.22em;
-  color: var(--blue-bright);
+  color: rgba(255,255,255,0.6);
   text-transform: uppercase;
-  opacity: 0.9;
 }
 
 .axiom-hero-title {
-  font-family: 'Orbitron', sans-serif;
+  font-family: 'Exo 2', sans-serif;
   font-size: clamp(52px, 9vw, 80px);
-  font-weight: 900;
-  color: var(--white);
-  letter-spacing: 0.3em;
-  text-shadow: 0 0 60px rgba(79, 195, 247, 0.25), 0 0 120px rgba(79, 195, 247, 0.1);
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: 0.15em;
+  text-shadow: 0 0 60px rgba(255,255,255,0.12), 0 0 120px rgba(255,255,255,0.06);
   line-height: 1;
 }
 
 .axiom-hero-subtitle {
-  font-family: 'Orbitron', sans-serif;
+  font-family: 'Exo 2', sans-serif;
   font-size: clamp(11px, 2vw, 17px);
   font-weight: 400;
-  color: var(--blue-bright);
+  color: rgba(255,255,255,0.7);
   letter-spacing: 0.04em;
   line-height: 1.4;
   max-width: 560px;
 }
 
 .axiom-hero-desc {
-  font-family: 'Rajdhani', sans-serif;
-  font-size: 16px;
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
   font-weight: 400;
   color: var(--white-dim);
   max-width: 580px;
@@ -422,10 +589,9 @@ body {
 
 .axiom-scroll-arrow {
   font-size: 22px;
-  color: var(--blue-bright);
+  color: rgba(255,255,255,0.6);
   animation: scrollBounce 2s ease-in-out infinite;
   display: block;
-  filter: drop-shadow(0 0 8px var(--blue-bright));
   line-height: 1;
 }
 
@@ -471,37 +637,37 @@ body {
 }
 
 .axiom-step.active::after {
-  background: var(--blue-bright);
-  box-shadow: 0 0 12px var(--blue-bright), 0 0 4px var(--blue-bright);
+  background: #ffffff;
+  box-shadow: 0 0 12px rgba(255,255,255,0.5), 0 0 4px rgba(255,255,255,0.5);
 }
 
 .axiom-step.complete::after {
-  background: var(--blue-mid);
+  background: rgba(255,255,255,0.4);
 }
 
 .axiom-step-num {
-  font-family: 'Orbitron', sans-serif;
+  font-family: 'Exo 2', sans-serif;
   font-size: 11px;
   font-weight: 700;
   flex-shrink: 0;
   transition: color 0.3s;
 }
 
-.axiom-step.active .axiom-step-num   { color: var(--blue-bright); }
-.axiom-step.complete .axiom-step-num { color: var(--blue-mid); }
+.axiom-step.active  .axiom-step-num { color: #ffffff; }
+.axiom-step.complete .axiom-step-num { color: rgba(255,255,255,0.5); }
 .axiom-step.inactive .axiom-step-num { color: var(--white-faint); }
 
 .axiom-step-label {
-  font-family: 'Orbitron', sans-serif;
+  font-family: 'Exo 2', sans-serif;
   font-size: 10px;
-  letter-spacing: 0.14em;
-  font-weight: 500;
+  letter-spacing: 0.10em;
+  font-weight: 600;
   transition: color 0.3s;
   white-space: nowrap;
 }
 
-.axiom-step.active .axiom-step-label   { color: var(--white); }
-.axiom-step.complete .axiom-step-label { color: var(--blue-mid); }
+.axiom-step.active  .axiom-step-label { color: #ffffff; }
+.axiom-step.complete .axiom-step-label { color: rgba(255,255,255,0.45); }
 .axiom-step.inactive .axiom-step-label { color: var(--white-faint); }
 
 /* ─── Stage Content ──────────────────────────────────────────────────────────── */
@@ -519,20 +685,20 @@ body {
 }
 
 .axiom-section-title {
-  font-family: 'Orbitron', sans-serif;
+  font-family: 'Exo 2', sans-serif;
   font-size: 15px;
   font-weight: 700;
-  color: var(--blue-bright);
-  letter-spacing: 0.18em;
+  color: #ffffff;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   margin-bottom: 6px;
 }
 
 .axiom-section-sub {
-  font-family: 'Rajdhani', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 13px;
   color: var(--white-dim);
-  letter-spacing: 0.04em;
+  letter-spacing: 0.01em;
 }
 
 /* ─── Stress Test Header ─────────────────────────────────────────────────────── */
@@ -544,16 +710,16 @@ body {
 }
 
 .axiom-stress-title {
-  font-family: 'Orbitron', sans-serif;
+  font-family: 'Exo 2', sans-serif;
   font-size: 15px;
   font-weight: 700;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: var(--blue-bright);
+  color: #ffffff;
   margin-bottom: 6px;
   text-shadow:
-    0 0 20px rgba(239, 83, 80, 0.5),
-    0 0 40px rgba(255, 179, 0, 0.25);
+    0 0 20px rgba(239, 83,  80, 0.5),
+    0 0 40px rgba(255, 179,  0, 0.25);
 }
 
 /* ─── Error Box ──────────────────────────────────────────────────────────────── */
@@ -567,7 +733,7 @@ body {
   background: rgba(239, 83, 80, 0.07);
   border-radius: 8px;
   padding: 12px 16px;
-  font-family: 'Rajdhani', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 14px;
   color: #EF5350;
 }
@@ -579,9 +745,9 @@ body {
 .axiom-retry-btn {
   background: none;
   border: none;
-  color: var(--blue-bright);
+  color: rgba(255,255,255,0.7);
   cursor: pointer;
-  font-family: 'Rajdhani', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 13px;
   text-decoration: underline;
   flex-shrink: 0;
@@ -603,12 +769,12 @@ body {
 }
 
 .axiom-label {
-  font-family: 'Rajdhani', sans-serif;
-  font-size: 12px;
+  font-family: 'Exo 2', sans-serif;
+  font-size: 11px;
   font-weight: 600;
-  color: var(--blue-bright);
+  color: rgba(255,255,255,0.7);
   text-transform: uppercase;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.12em;
 }
 
 .axiom-input {
@@ -616,9 +782,9 @@ body {
   background: var(--bg-surface);
   border: 1px solid var(--border);
   color: var(--white);
-  font-family: 'Rajdhani', sans-serif;
-  font-size: 16px;
-  font-weight: 500;
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  font-weight: 400;
   padding: 14px 16px;
   border-radius: 8px;
   outline: none;
@@ -630,12 +796,12 @@ body {
 }
 
 .axiom-input:hover:not(:disabled) {
-  border-color: var(--border-bright);
+  border-color: rgba(255,255,255,0.25);
 }
 
 .axiom-input:focus {
-  border-color: var(--blue-bright);
-  box-shadow: 0 0 20px var(--blue-glow);
+  border-color: rgba(255,255,255,0.45);
+  box-shadow: 0 0 20px rgba(255,255,255,0.05);
 }
 
 .axiom-input:disabled {
@@ -647,7 +813,7 @@ body {
   cursor: pointer;
   appearance: none;
   -webkit-appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%234FC3F7' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23ffffff' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 16px center;
   padding-right: 42px;
@@ -667,13 +833,13 @@ body {
 
 .axiom-btn-primary {
   width: 100%;
-  background: linear-gradient(135deg, var(--blue-deep) 0%, var(--blue-mid) 100%);
-  border: 1px solid var(--border-bright);
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.28);
   color: var(--white);
-  font-family: 'Orbitron', sans-serif;
+  font-family: 'Exo 2', sans-serif;
   font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.22em;
+  font-weight: 600;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   padding: 16px 24px;
   border-radius: 8px;
@@ -682,12 +848,13 @@ body {
   align-items: center;
   justify-content: center;
   gap: 10px;
-  transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
+  transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
 }
 
 .axiom-btn-primary:hover:not(:disabled) {
+  background: rgba(255,255,255,0.12);
   transform: scale(1.02);
-  box-shadow: 0 0 28px rgba(79, 195, 247, 0.35);
+  box-shadow: 0 0 28px rgba(255,255,255,0.12);
 }
 
 .axiom-btn-primary:disabled {
@@ -696,25 +863,26 @@ body {
 }
 
 .axiom-btn-add {
-  background: linear-gradient(135deg, var(--blue-deep) 0%, var(--blue-mid) 100%);
-  border: 1px solid var(--border-bright);
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.28);
   color: var(--white);
-  font-family: 'Orbitron', sans-serif;
+  font-family: 'Exo 2', sans-serif;
   font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.18em;
+  font-weight: 600;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   padding: 14px 22px;
   border-radius: 8px;
   cursor: pointer;
   white-space: nowrap;
   flex-shrink: 0;
-  transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
+  transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
 }
 
 .axiom-btn-add:hover:not(:disabled) {
+  background: rgba(255,255,255,0.12);
   transform: scale(1.02);
-  box-shadow: 0 0 22px rgba(79, 195, 247, 0.35);
+  box-shadow: 0 0 22px rgba(255,255,255,0.10);
 }
 
 .axiom-btn-add:disabled {
@@ -725,12 +893,12 @@ body {
 .axiom-btn-stress {
   width: 100%;
   background: transparent;
-  border: 2px solid var(--blue-bright);
-  color: var(--blue-bright);
-  font-family: 'Orbitron', sans-serif;
+  border: 2px solid rgba(255,255,255,0.55);
+  color: #ffffff;
+  font-family: 'Exo 2', sans-serif;
   font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.22em;
+  font-weight: 600;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   padding: 17px 24px;
   border-radius: 8px;
@@ -740,8 +908,9 @@ body {
 }
 
 .axiom-btn-stress:hover {
-  background: var(--blue-glow);
-  box-shadow: 0 0 36px rgba(79, 195, 247, 0.45);
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(255,255,255,0.85);
+  box-shadow: 0 0 36px rgba(255,255,255,0.18);
   transform: scale(1.01);
 }
 
@@ -750,10 +919,10 @@ body {
   background: transparent;
   border: 1px solid var(--border);
   color: var(--white-dim);
-  font-family: 'Orbitron', sans-serif;
+  font-family: 'Exo 2', sans-serif;
   font-size: 11px;
   font-weight: 500;
-  letter-spacing: 0.15em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   padding: 12px 24px;
   border-radius: 8px;
@@ -762,20 +931,20 @@ body {
 }
 
 .axiom-btn-rerun:hover {
-  border-color: var(--border-bright);
+  border-color: rgba(255,255,255,0.35);
   color: var(--white);
-  box-shadow: 0 0 16px var(--blue-glow);
+  box-shadow: 0 0 16px rgba(255,255,255,0.06);
 }
 
 .axiom-btn-export {
   width: 100%;
-  background: linear-gradient(135deg, var(--blue-deep) 0%, var(--blue-mid) 100%);
-  border: 1px solid var(--border-bright);
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.28);
   color: var(--white);
-  font-family: 'Orbitron', sans-serif;
+  font-family: 'Exo 2', sans-serif;
   font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.22em;
+  font-weight: 600;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   padding: 16px 24px;
   border-radius: 8px;
@@ -784,7 +953,7 @@ body {
   align-items: center;
   justify-content: center;
   gap: 10px;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
 }
 
 .axiom-btn-export::before {
@@ -794,8 +963,9 @@ body {
 }
 
 .axiom-btn-export:hover {
+  background: rgba(255,255,255,0.12);
   transform: scale(1.02);
-  box-shadow: 0 0 28px rgba(79, 195, 247, 0.35);
+  box-shadow: 0 0 28px rgba(255,255,255,0.10);
 }
 
 /* ─── Spinner ────────────────────────────────────────────────────────────────── */
@@ -804,8 +974,8 @@ body {
   display: inline-block;
   width: 14px;
   height: 14px;
-  border: 2px solid rgba(240, 248, 255, 0.25);
-  border-top-color: var(--white);
+  border: 2px solid rgba(255,255,255,0.2);
+  border-top-color: #ffffff;
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
   flex-shrink: 0;
@@ -830,7 +1000,7 @@ body {
   gap: 20px;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 0 50px var(--blue-glow);
+  box-shadow: 0 0 50px rgba(255,255,255,0.03);
 }
 
 .axiom-mission-card-grid {
@@ -838,8 +1008,8 @@ body {
   inset: 0;
   pointer-events: none;
   background-image:
-    linear-gradient(rgba(79, 195, 247, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(79, 195, 247, 0.03) 1px, transparent 1px);
+    linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
   background-size: 40px 40px;
 }
 
@@ -852,24 +1022,24 @@ body {
 }
 
 .axiom-mission-name {
-  font-family: 'Orbitron', sans-serif;
+  font-family: 'Exo 2', sans-serif;
   font-size: 20px;
   font-weight: 700;
-  color: var(--blue-bright);
-  letter-spacing: 0.1em;
+  color: #ffffff;
+  letter-spacing: 0.06em;
 }
 
 .axiom-mission-type-badge {
-  font-family: 'Rajdhani', sans-serif;
-  font-size: 12px;
+  font-family: 'Exo 2', sans-serif;
+  font-size: 11px;
   font-weight: 600;
-  color: var(--blue-bright);
-  background: var(--blue-glow);
-  border: 1px solid var(--border-bright);
+  color: rgba(255,255,255,0.75);
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.22);
   padding: 4px 14px;
   border-radius: 4px;
   text-transform: uppercase;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.10em;
   white-space: nowrap;
 }
 
@@ -880,19 +1050,19 @@ body {
 }
 
 .axiom-mission-row-label {
-  font-family: 'Rajdhani', sans-serif;
-  font-size: 11px;
+  font-family: 'Exo 2', sans-serif;
+  font-size: 10px;
   font-weight: 600;
-  color: var(--blue-bright);
+  color: rgba(255,255,255,0.55);
   text-transform: uppercase;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.12em;
 }
 
 .axiom-mission-row-value {
-  font-family: 'Rajdhani', sans-serif;
-  font-size: 15px;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
   color: var(--white-dim);
-  line-height: 1.55;
+  line-height: 1.6;
 }
 
 .axiom-constraint-items {
@@ -905,14 +1075,14 @@ body {
   display: flex;
   align-items: flex-start;
   gap: 9px;
-  font-family: 'Rajdhani', sans-serif;
-  font-size: 15px;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
   color: var(--white-dim);
   line-height: 1.4;
 }
 
 .axiom-constraint-bullet {
-  color: var(--blue-bright);
+  color: rgba(255,255,255,0.45);
   flex-shrink: 0;
   margin-top: 1px;
 }
@@ -940,11 +1110,11 @@ body {
 }
 
 .axiom-registry-header {
-  font-family: 'Orbitron', sans-serif;
+  font-family: 'Exo 2', sans-serif;
   font-size: 11px;
   font-weight: 700;
-  color: var(--blue-bright);
-  letter-spacing: 0.22em;
+  color: rgba(255,255,255,0.55);
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   padding-bottom: 10px;
 }
@@ -952,7 +1122,7 @@ body {
 .axiom-constraint-card {
   background: var(--tier-bg, var(--bg-surface));
   border: 1px solid var(--border);
-  border-left: 3px solid var(--tier-color, var(--blue-bright));
+  border-left: 3px solid var(--tier-color, rgba(255,255,255,0.4));
   border-radius: 8px;
   padding: 16px;
   display: flex;
@@ -969,10 +1139,10 @@ body {
 }
 
 .axiom-tier-badge {
-  font-family: 'Rajdhani', sans-serif;
-  font-size: 11px;
+  font-family: 'Exo 2', sans-serif;
+  font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.10em;
   text-transform: uppercase;
   padding: 3px 10px;
   border-radius: 12px;
@@ -986,10 +1156,10 @@ body {
 }
 
 .axiom-constraint-text {
-  font-family: 'Rajdhani', sans-serif;
-  font-size: 15px;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
   color: var(--white);
-  line-height: 1.5;
+  line-height: 1.6;
 }
 
 .axiom-ambiguity-flags {
@@ -999,27 +1169,27 @@ body {
 }
 
 .axiom-ambiguity-chip {
-  font-family: 'Rajdhani', sans-serif;
-  font-size: 12px;
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
   font-weight: 600;
   color: #FFB300;
-  background: rgba(255, 179, 0, 0.1);
-  border: 1px solid rgba(255, 179, 0, 0.3);
+  background: rgba(255, 179, 0, 0.10);
+  border: 1px solid rgba(255, 179, 0, 0.30);
   padding: 2px 10px;
   border-radius: 4px;
 }
 
 .axiom-constraint-rationale {
-  font-family: 'Rajdhani', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 13px;
   color: var(--white-dim);
   border-top: 1px solid var(--white-faint);
   padding-top: 10px;
-  line-height: 1.55;
+  line-height: 1.6;
 }
 
 .axiom-hint {
-  font-family: 'Rajdhani', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 13px;
   color: var(--white-faint);
   text-align: center;
@@ -1036,16 +1206,16 @@ body {
   display: flex;
   flex-direction: column;
   gap: 20px;
-  box-shadow: 0 0 50px var(--blue-glow);
+  box-shadow: 0 0 50px rgba(255,255,255,0.03);
   margin-bottom: 0;
 }
 
 .axiom-ready-title {
-  font-family: 'Orbitron', sans-serif;
+  font-family: 'Exo 2', sans-serif;
   font-size: 12px;
   font-weight: 700;
-  color: var(--blue-bright);
-  letter-spacing: 0.22em;
+  color: #ffffff;
+  letter-spacing: 0.10em;
 }
 
 .axiom-ready-list {
@@ -1058,15 +1228,14 @@ body {
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  font-family: 'Rajdhani', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 14px;
   color: var(--white-dim);
-  line-height: 1.45;
+  line-height: 1.5;
 }
 
 .axiom-ready-bullet {
-  color: var(--blue-bright);
-  opacity: 0.55;
+  color: rgba(255,255,255,0.35);
   flex-shrink: 0;
   margin-top: 1px;
 }
@@ -1092,22 +1261,22 @@ body {
   left: 0;
   right: 0;
   height: 2px;
-  background: linear-gradient(90deg, transparent 0%, var(--blue-bright) 50%, transparent 100%);
-  box-shadow: 0 0 20px var(--blue-bright);
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.6) 50%, transparent 100%);
+  box-shadow: 0 0 20px rgba(255,255,255,0.3);
   animation: scanLine 2s linear infinite;
 }
 
 .axiom-loading-text-main {
-  font-family: 'Orbitron', sans-serif;
+  font-family: 'Exo 2', sans-serif;
   font-size: 12px;
   font-weight: 700;
-  color: var(--blue-bright);
-  letter-spacing: 0.18em;
+  color: #ffffff;
+  letter-spacing: 0.10em;
   animation: twinkle 1.6s ease-in-out infinite;
 }
 
 .axiom-loading-sub {
-  font-family: 'Rajdhani', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 13px;
   color: var(--white-faint);
 }
@@ -1132,25 +1301,25 @@ body {
 }
 
 .axiom-summary-label {
-  font-family: 'Orbitron', sans-serif;
+  font-family: 'Exo 2', sans-serif;
   font-size: 10px;
   color: var(--white-dim);
-  letter-spacing: 0.18em;
+  letter-spacing: 0.10em;
   text-transform: uppercase;
   flex: 1;
   min-width: 100px;
 }
 
-.axiom-summary-pass     { font-family: 'Rajdhani', sans-serif; font-size: 14px; font-weight: 700; color: #4CAF50; letter-spacing: 0.05em; }
-.axiom-summary-conflict { font-family: 'Rajdhani', sans-serif; font-size: 14px; font-weight: 700; color: #FFB300; letter-spacing: 0.05em; }
-.axiom-summary-gap      { font-family: 'Rajdhani', sans-serif; font-size: 14px; font-weight: 700; color: #EF5350; letter-spacing: 0.05em; }
+.axiom-summary-pass     { font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 600; color: #4CAF50; letter-spacing: 0.02em; }
+.axiom-summary-conflict { font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 600; color: #FFB300; letter-spacing: 0.02em; }
+.axiom-summary-gap      { font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 600; color: #EF5350; letter-spacing: 0.02em; }
 
 /* ─── Scenario Cards ─────────────────────────────────────────────────────────── */
 
 .axiom-scenario-card {
   background: var(--outcome-bg, var(--bg-surface));
   border: 1px solid var(--border);
-  border-left: 3px solid var(--outcome-color, var(--blue-bright));
+  border-left: 3px solid var(--outcome-color, rgba(255,255,255,0.4));
   border-radius: 8px;
   padding: 16px;
   display: flex;
@@ -1167,19 +1336,19 @@ body {
 }
 
 .axiom-scenario-text {
-  font-family: 'Rajdhani', sans-serif;
-  font-size: 15px;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
   font-weight: 500;
   color: var(--white);
-  line-height: 1.5;
+  line-height: 1.55;
   flex: 1;
 }
 
 .axiom-outcome-badge {
-  font-family: 'Rajdhani', sans-serif;
-  font-size: 11px;
+  font-family: 'Exo 2', sans-serif;
+  font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.10em;
   text-transform: uppercase;
   padding: 3px 10px;
   border-radius: 12px;
@@ -1205,12 +1374,12 @@ body {
 }
 
 .axiom-scenario-explanation {
-  font-family: 'Rajdhani', sans-serif;
-  font-size: 14px;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
   color: var(--white-dim);
   border-top: 1px solid var(--white-faint);
   padding-top: 10px;
-  line-height: 1.65;
+  line-height: 1.7;
 }
 
 /* ─── Stress Header Title Row ────────────────────────────────────────────────── */
@@ -1223,15 +1392,15 @@ body {
 }
 
 .axiom-version-badge {
-  font-family: 'Orbitron', sans-serif;
+  font-family: monospace;
   font-size: 10px;
   font-weight: 700;
-  color: var(--blue-bright);
-  background: var(--blue-glow);
-  border: 1px solid var(--border-bright);
+  color: rgba(255,255,255,0.65);
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.20);
   padding: 3px 10px;
   border-radius: 4px;
-  letter-spacing: 0.15em;
+  letter-spacing: 0.08em;
   animation: fadeIn 0.3s ease;
 }
 
@@ -1240,12 +1409,12 @@ body {
 .axiom-btn-rerun-stress {
   width: 100%;
   background: transparent;
-  border: 2px solid var(--blue-bright);
-  color: var(--blue-bright);
-  font-family: 'Orbitron', sans-serif;
+  border: 2px solid rgba(255,255,255,0.55);
+  color: #ffffff;
+  font-family: 'Exo 2', sans-serif;
   font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.22em;
+  font-weight: 600;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   padding: 14px 24px;
   border-radius: 8px;
@@ -1255,8 +1424,9 @@ body {
 }
 
 .axiom-btn-rerun-stress:hover {
-  background: var(--blue-glow);
-  box-shadow: 0 0 30px rgba(79, 195, 247, 0.4);
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(255,255,255,0.85);
+  box-shadow: 0 0 30px rgba(255,255,255,0.15);
   transform: scale(1.01);
 }
 
@@ -1272,12 +1442,12 @@ body {
 
 .axiom-btn-fix {
   background: transparent;
-  border: 1px solid var(--border-bright);
-  color: var(--blue-bright);
-  font-family: 'Orbitron', sans-serif;
+  border: 1px solid rgba(255,255,255,0.28);
+  color: rgba(255,255,255,0.75);
+  font-family: 'Exo 2', sans-serif;
   font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.18em;
+  font-weight: 600;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   padding: 7px 16px;
   border-radius: 6px;
@@ -1289,8 +1459,9 @@ body {
 }
 
 .axiom-btn-fix:hover:not(:disabled) {
-  background: var(--blue-glow);
-  box-shadow: 0 0 14px var(--blue-glow);
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(255,255,255,0.5);
+  color: #ffffff;
 }
 
 .axiom-btn-fix:disabled {
@@ -1299,11 +1470,11 @@ body {
 }
 
 .axiom-fix-accepted-badge {
-  font-family: 'Rajdhani', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
   color: #4CAF50;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.06em;
   text-align: right;
   padding-top: 8px;
   border-top: 1px solid var(--white-faint);
@@ -1313,8 +1484,8 @@ body {
 /* ─── Fix Suggestion Panel ───────────────────────────────────────────────────── */
 
 .axiom-fix-panel {
-  background: rgba(1, 8, 20, 0.85);
-  border: 1px solid var(--border-bright);
+  background: rgba(0, 3, 8, 0.85);
+  border: 1px solid rgba(255,255,255,0.22);
   border-radius: 8px;
   padding: 16px;
   display: flex;
@@ -1325,40 +1496,40 @@ body {
 }
 
 .axiom-fix-panel-header {
-  font-family: 'Orbitron', sans-serif;
+  font-family: 'Exo 2', sans-serif;
   font-size: 10px;
   font-weight: 700;
-  color: var(--blue-bright);
-  letter-spacing: 0.2em;
+  color: rgba(255,255,255,0.65);
+  letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
 .axiom-fix-constraint-text {
-  font-family: 'Rajdhani', sans-serif;
-  font-size: 15px;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
   font-weight: 500;
   color: var(--white);
-  line-height: 1.55;
+  line-height: 1.6;
   padding: 10px 14px;
-  background: var(--blue-glow);
+  background: rgba(255,255,255,0.04);
   border: 1px solid var(--border);
   border-radius: 6px;
 }
 
 .axiom-fix-label {
-  font-family: 'Rajdhani', sans-serif;
-  font-size: 11px;
+  font-family: 'Exo 2', sans-serif;
+  font-size: 10px;
   font-weight: 600;
-  color: var(--blue-bright);
+  color: rgba(255,255,255,0.55);
   text-transform: uppercase;
-  letter-spacing: 0.15em;
+  letter-spacing: 0.10em;
 }
 
 .axiom-fix-reasoning {
-  font-family: 'Rajdhani', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 13px;
   color: var(--white-dim);
-  line-height: 1.65;
+  line-height: 1.7;
 }
 
 .axiom-fix-actions {
@@ -1369,13 +1540,13 @@ body {
 
 .axiom-btn-accept {
   flex: 1;
-  background: linear-gradient(135deg, var(--blue-deep) 0%, var(--blue-mid) 100%);
-  border: 1px solid var(--border-bright);
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.28);
   color: var(--white);
-  font-family: 'Orbitron', sans-serif;
+  font-family: 'Exo 2', sans-serif;
   font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.18em;
+  font-weight: 600;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   padding: 12px 16px;
   border-radius: 8px;
@@ -1384,12 +1555,13 @@ body {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
 }
 
 .axiom-btn-accept:hover:not(:disabled) {
+  background: rgba(255,255,255,0.12);
   transform: scale(1.02);
-  box-shadow: 0 0 22px rgba(79, 195, 247, 0.3);
+  box-shadow: 0 0 22px rgba(255,255,255,0.10);
 }
 
 .axiom-btn-accept:disabled {
@@ -1401,10 +1573,10 @@ body {
   background: transparent;
   border: 1px solid var(--border);
   color: var(--white-dim);
-  font-family: 'Orbitron', sans-serif;
+  font-family: 'Exo 2', sans-serif;
   font-size: 11px;
   font-weight: 500;
-  letter-spacing: 0.15em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   padding: 12px 20px;
   border-radius: 8px;
@@ -1414,7 +1586,7 @@ body {
 }
 
 .axiom-btn-dismiss:hover:not(:disabled) {
-  border-color: var(--border-bright);
+  border-color: rgba(255,255,255,0.35);
   color: var(--white);
 }
 
@@ -1427,7 +1599,7 @@ body {
 
 @keyframes toastIn {
   from { opacity: 0; transform: translateX(-50%) translateY(10px); }
-  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0);    }
 }
 
 .axiom-toast {
@@ -1438,10 +1610,10 @@ body {
   background: rgba(76, 175, 80, 0.15);
   border: 1px solid rgba(76, 175, 80, 0.45);
   color: #4CAF50;
-  font-family: 'Orbitron', sans-serif;
+  font-family: 'Exo 2', sans-serif;
   font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.12em;
   padding: 13px 26px;
   border-radius: 8px;
   z-index: 1000;
@@ -1454,7 +1626,7 @@ body {
 /* ─── RAG: Data Sources Panel ────────────────────────────────────────────────── */
 
 .axiom-data-sources {
-  border: 1px solid rgba(79, 195, 247, 0.2);
+  border: 1px solid rgba(255,255,255,0.12);
   border-radius: 6px;
   margin-bottom: 16px;
   overflow: hidden;
@@ -1465,7 +1637,7 @@ body {
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  background: rgba(79, 195, 247, 0.05);
+  background: rgba(255,255,255,0.04);
   border: none;
   padding: 10px 16px;
   cursor: pointer;
@@ -1473,25 +1645,25 @@ body {
 }
 
 .axiom-sources-header:hover {
-  background: rgba(79, 195, 247, 0.1);
+  background: rgba(255,255,255,0.07);
 }
 
 .axiom-sources-label {
-  font-family: 'Orbitron', sans-serif;
+  font-family: 'Exo 2', sans-serif;
   font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.15em;
-  color: var(--blue-bright);
+  letter-spacing: 0.10em;
+  color: rgba(255,255,255,0.6);
 }
 
 .axiom-sources-chevron {
   font-size: 9px;
-  color: var(--blue-bright);
+  color: rgba(255,255,255,0.4);
 }
 
 .axiom-sources-list {
   padding: 4px 0;
-  border-top: 1px solid rgba(79, 195, 247, 0.12);
+  border-top: 1px solid rgba(255,255,255,0.08);
 }
 
 .axiom-sources-row {
@@ -1499,7 +1671,7 @@ body {
   align-items: flex-start;
   gap: 10px;
   padding: 8px 16px;
-  border-bottom: 1px solid rgba(79, 195, 247, 0.06);
+  border-bottom: 1px solid rgba(255,255,255,0.05);
 }
 
 .axiom-sources-row:last-child {
@@ -1516,7 +1688,7 @@ body {
 
 .axiom-sources-title {
   font-size: 12px;
-  color: var(--white);
+  color: var(--white-dim);
   line-height: 1.4;
 }
 
@@ -1528,28 +1700,29 @@ body {
 
 .axiom-btn-sources {
   background: transparent;
-  border: 1px solid rgba(79, 195, 247, 0.35);
+  border: 1px solid rgba(255,255,255,0.22);
   border-radius: 4px;
-  color: var(--blue-bright);
-  font-family: 'Orbitron', sans-serif;
+  color: rgba(255,255,255,0.55);
+  font-family: 'Exo 2', sans-serif;
   font-size: 9px;
   font-weight: 700;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.08em;
   padding: 5px 10px;
   cursor: pointer;
-  transition: background 0.2s, border-color 0.2s;
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
 }
 
 .axiom-btn-sources:hover {
-  background: rgba(79, 195, 247, 0.08);
-  border-color: rgba(79, 195, 247, 0.6);
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(255,255,255,0.45);
+  color: rgba(255,255,255,0.85);
 }
 
 .axiom-citation-panel {
   margin-top: 8px;
-  border: 1px solid rgba(79, 195, 247, 0.25);
+  border: 1px solid rgba(255,255,255,0.12);
   border-radius: 6px;
-  background: rgba(79, 195, 247, 0.03);
+  background: rgba(255,255,255,0.02);
   overflow: hidden;
 }
 
@@ -1558,7 +1731,7 @@ body {
   align-items: flex-start;
   gap: 10px;
   padding: 10px 14px;
-  border-bottom: 1px solid rgba(79, 195, 247, 0.08);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
 }
 
 .axiom-citation-entry:last-child {
@@ -1569,9 +1742,9 @@ body {
   font-family: 'Courier New', monospace;
   font-size: 10px;
   font-weight: 700;
-  color: var(--blue-bright);
-  background: rgba(79, 195, 247, 0.1);
-  border: 1px solid rgba(79, 195, 247, 0.25);
+  color: rgba(255,255,255,0.7);
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.18);
   border-radius: 3px;
   padding: 2px 6px;
   white-space: nowrap;
@@ -1600,15 +1773,15 @@ body {
 
 .axiom-citation-link {
   font-size: 10px;
-  color: var(--blue-bright);
+  color: rgba(255,255,255,0.55);
   text-decoration: none;
   white-space: nowrap;
   flex-shrink: 0;
   padding-top: 1px;
-  transition: opacity 0.2s;
+  transition: color 0.2s;
 }
 
 .axiom-citation-link:hover {
-  opacity: 0.75;
+  color: #ffffff;
   text-decoration: underline;
 }
