@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Anthropic from '@anthropic-ai/sdk'
 import { jsPDF } from 'jspdf'
 import { retrieveRelevantContext, formatContextForPrompt, getEntryById } from './utils/retrieval'
@@ -56,11 +56,112 @@ const OUTCOME_COLORS = {
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-function NavBar({ stage, missionData }) {
+const DRAWER_SOURCES = [
+  { id: 'CSLI', badge: 'NASA', title: 'CubeSat Launch Initiative', desc: 'NASA CSLI program documentation + CubeSat 101 guide', url: 'https://www.nasa.gov/kennedy/launch-services-program/cubesat-launch-initiative/' },
+  { id: 'ESA-DEBRIS', badge: 'ESA', title: 'Space Debris Environment Report', desc: 'ESA Space Debris Office annual reports', url: 'https://www.esa.int/Space_Safety/Space_Debris' },
+  { id: 'GSFC', badge: 'NASA', title: 'NASA Goddard Anomaly Reports', desc: 'GSFC small satellite mission lessons learned', url: 'https://www.nasa.gov/smallsat-institute/' },
+  { id: 'ARTEMIS', badge: 'NASA', title: 'Artemis Lunar CubeSats', desc: 'Lunar IceCube and LunaH-Map Artemis-1 rideshare profiles', url: 'https://www.nasa.gov/kennedy/launch-services-program/cubesat-launch-initiative/' },
+]
+
+function Drawer({ open, onClose }) {
+  const [tab, setTab] = useState('about')
+
+  return (
+    <>
+      {open && <div className="axiom-drawer-overlay" onClick={onClose} />}
+      <div className={`axiom-drawer${open ? ' open' : ''}`}>
+        <div className="axiom-drawer-header">
+          <span className="axiom-drawer-title">AXIOM</span>
+          <button className="axiom-drawer-close" onClick={onClose}>✕</button>
+        </div>
+        <div className="axiom-drawer-tabs">
+          {[
+            { key: 'about', label: 'About' },
+            { key: 'solution', label: 'The Solution' },
+            { key: 'demo', label: 'Demo' },
+            { key: 'sources', label: 'Data Sources' },
+          ].map(({ key, label }) => (
+            <button
+              key={key}
+              className={`axiom-drawer-tab${tab === key ? ' active' : ''}`}
+              onClick={() => setTab(key)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        <div className="axiom-drawer-content">
+          {tab === 'about' && (
+            <div className="axiom-drawer-section">
+              <h3>What is AXIOM?</h3>
+              <p>AXIOM (Autonomous eXploration Intent &amp; Objective Manager) is a mission constraint governance system designed for the age of deep space autonomy.</p>
+              <p>As spacecraft operate further from Earth — with light-speed delays making real-time control impossible — autonomous systems must make consequential decisions independently. AXIOM is the constitutional layer that defines the boundaries of that autonomy.</p>
+              <h3>The Problem</h3>
+              <p>Mission constraints written by humans are often ambiguous, conflicting, or incomplete. A constraint set that seems reasonable on paper may contain logical conflicts that only surface under specific operational conditions — precisely the conditions an autonomous spacecraft is likely to encounter.</p>
+              <p>Traditional verification methods require domain experts, days of analysis, and often miss emergent failure modes that only arise when multiple constraints interact.</p>
+            </div>
+          )}
+          {tab === 'solution' && (
+            <div className="axiom-drawer-section">
+              <h3>The Solution</h3>
+              <p>AXIOM uses Constitutional AI techniques to stress-test mission constraint sets before deployment. An adversarial AI agent probes for:</p>
+              <ul className="axiom-drawer-bullet-list">
+                <li>Logical conflicts between constraints</li>
+                <li>Coverage gaps in edge cases and boundary conditions</li>
+                <li>Ambiguities that could be exploited or misinterpreted</li>
+                <li>Scenarios technically compliant but intent-violating</li>
+              </ul>
+              <h3>RAG-Enhanced Analysis</h3>
+              <p>AXIOM grounds its analysis in verified NASA and ESA mission data — real anomaly reports, debris statistics, and CubeSat operational profiles — injected as context during stress testing.</p>
+
+              <h3>Constraint Refinement Loop</h3>
+              <p>When gaps or conflicts are found, AXIOM suggests targeted constraint additions. Accepted fixes are added to the registry and can trigger a re-run, creating a closed refinement loop.</p>
+            </div>
+          )}
+          {tab === 'demo' && (
+            <div className="axiom-drawer-section">
+              <p style={{ marginBottom: 10 }}>Demo recording coming soon.</p>
+              <a href="#" className="axiom-drawer-demo-link">→ Watch Demo</a>
+            </div>
+          )}
+          {tab === 'sources' && (
+            <div className="axiom-drawer-section">
+              <h3>Knowledge Base</h3>
+              <p>AXIOM's RAG system retrieves from these verified sources during stress test analysis to ground scenarios in real mission history.</p>
+              <div className="axiom-source-cards">
+                {DRAWER_SOURCES.map((s) => (
+                  <a
+                    key={s.id}
+                    href={s.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="axiom-source-card"
+                  >
+                    <span className={`axiom-source-badge ${s.badge.toLowerCase()}`}>{s.badge}</span>
+                    <div className="axiom-source-card-info">
+                      <span className="axiom-source-card-title">{s.title}</span>
+                      <span className="axiom-source-card-desc">{s.desc}</span>
+                    </div>
+                    <span className="axiom-source-card-arrow">→</span>
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </>
+  )
+}
+
+function NavBar({ stage, missionData, onHamburgerClick }) {
   return (
     <nav className="axiom-nav">
       <div className="axiom-nav-inner">
         <div className="axiom-nav-left">
+          <button className="axiom-hamburger" onClick={onHamburgerClick} aria-label="Open menu">
+            <span /><span /><span />
+          </button>
           <span className="axiom-nav-dot" />
           <span className="axiom-logo">AXIOM</span>
         </div>
@@ -251,12 +352,13 @@ function Stage1({ onComplete }) {
             {loading ? (
               <>
                 <span className="axiom-spinner" />
-                ANALYZING...
+                INITIALIZING...
               </>
             ) : (
               'INITIALIZE MISSION'
             )}
           </button>
+          {loading && <div className="axiom-scan-line-input" />}
         </form>
       ) : (
         <div className="axiom-result-block">
@@ -361,7 +463,7 @@ function Stage2({ missionData, onComplete }) {
           disabled={loading || !text.trim()}
           className="axiom-btn-add"
         >
-          {loading ? '···' : 'ADD'}
+          {loading ? <><span className="axiom-spinner" /> PARSING...</> : 'ADD'}
         </button>
       </div>
 
@@ -429,17 +531,31 @@ function Stage2({ missionData, onComplete }) {
 
 // ─── Stage 3: Stress Test ─────────────────────────────────────────────────────
 
-function Stage3({ missionData, constraints, onAddConstraint }) {
-  const [scenarios, setScenarios] = useState(null)
+function Stage3({ missionData, constraints, onAddConstraint, initialScenarios, initialRetrievedSources }) {
+  const [scenarios, setScenarios] = useState(initialScenarios || null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [analysisVersion, setAnalysisVersion] = useState(1)
   const [fixStates, setFixStates] = useState({})
   const [anyFixAccepted, setAnyFixAccepted] = useState(false)
   const [toast, setToast] = useState(null)
-  const [retrievedSources, setRetrievedSources] = useState([])
+  const [retrievedSources, setRetrievedSources] = useState(initialRetrievedSources || [])
   const [sourcesOpen, setSourcesOpen] = useState(false)
   const [citationOpen, setCitationOpen] = useState({})
+  const [loadingStatus, setLoadingStatus] = useState('')
+
+  useEffect(() => {
+    if (!loading) return
+    const msgs = [
+      'Retrieving mission reference data...',
+      'Probing constraint boundaries...',
+      'Generating adversarial scenarios...',
+    ]
+    setLoadingStatus(msgs[0])
+    const t1 = setTimeout(() => setLoadingStatus(msgs[1]), 2000)
+    const t2 = setTimeout(() => setLoadingStatus(msgs[2]), 4000)
+    return () => { clearTimeout(t1); clearTimeout(t2) }
+  }, [loading])
 
   const runTest = async (isRerun = false) => {
     if (isRerun) setAnalysisVersion((v) => v + 1)
@@ -563,6 +679,20 @@ function Stage3({ missionData, constraints, onAddConstraint }) {
 
   const handleDismiss = (idx) => {
     setFixStates((prev) => ({ ...prev, [idx]: { ...prev[idx], suggestion: null, error: null } }))
+  }
+
+  const handleShare = () => {
+    const encoded = btoa(JSON.stringify({
+      missionContext: missionData,
+      constraints,
+      stressTestResults: scenarios,
+      retrievedSources,
+    }))
+    window.location.hash = `state=${encoded}`
+    navigator.clipboard.writeText(window.location.href).then(
+      () => { setToast('Link copied to clipboard'); setTimeout(() => setToast(null), 3000) },
+      () => { setToast('Link ready — copy from address bar'); setTimeout(() => setToast(null), 4000) }
+    )
   }
 
   const handleExport = () => {
@@ -1021,9 +1151,12 @@ function Stage3({ missionData, constraints, onAddConstraint }) {
 
       {loading && (
         <div className="axiom-loading-panel">
-          <div className="axiom-scan-line" />
+          <div className="axiom-radar-sweep">
+            <div className="axiom-radar-ring" />
+            <div className="axiom-radar-line" />
+          </div>
           <div className="axiom-loading-text-main">RUNNING ADVERSARIAL ANALYSIS...</div>
-          <div className="axiom-loading-sub">Probing constraint boundaries...</div>
+          <div className="axiom-loading-sub">{loadingStatus}</div>
         </div>
       )}
 
@@ -1089,7 +1222,7 @@ function Stage3({ missionData, constraints, onAddConstraint }) {
             return (
               <div
                 key={i}
-                className="axiom-scenario-card"
+                className={`axiom-scenario-card${fixState.loading ? ' axiom-card-fixing' : ''}`}
                 style={{
                   '--outcome-color': colors.border,
                   '--outcome-bg': colors.bg,
@@ -1158,7 +1291,7 @@ function Stage3({ missionData, constraints, onAddConstraint }) {
                       disabled={fixState.loading || !!fixState.suggestion}
                       className="axiom-btn-fix"
                     >
-                      {fixState.loading ? <><span className="axiom-spinner" /> ANALYZING…</> : 'FIX THIS'}
+                      {fixState.loading ? <><span className="axiom-spinner" /> GENERATING FIX...</> : 'FIX THIS'}
                     </button>
                   </div>
                 )}
@@ -1221,6 +1354,10 @@ function Stage3({ missionData, constraints, onAddConstraint }) {
             RUN AGAIN
           </button>
 
+          <button onClick={handleShare} className="axiom-btn-share">
+            ↗ SHARE RESULTS
+          </button>
+
           <button onClick={handleExport} className="axiom-btn-export">
             EXPORT CONSTRAINT DOCUMENT
           </button>
@@ -1238,6 +1375,23 @@ export default function App() {
   const [stage, setStage] = useState(1)
   const [missionData, setMissionData] = useState(null)
   const [constraints, setConstraints] = useState([])
+  const [drawerOpen, setDrawerOpen] = useState(false)
+  const [sharedState, setSharedState] = useState(null)
+
+  useEffect(() => {
+    const hash = window.location.hash
+    if (!hash.startsWith('#state=')) return
+    try {
+      const decoded = JSON.parse(atob(hash.slice(7)))
+      if (decoded.missionContext && decoded.constraints && decoded.stressTestResults) {
+        setMissionData(decoded.missionContext)
+        setConstraints(decoded.constraints)
+        setSharedState(decoded)
+        setStage(3)
+        history.replaceState(null, '', window.location.pathname + window.location.search)
+      }
+    } catch {}
+  }, [])
 
   const goToConstraints = (data) => {
     setMissionData(data)
@@ -1254,7 +1408,8 @@ export default function App() {
   return (
     <div className="axiom-app">
       <div className="axiom-stars-bg" />
-      <NavBar stage={stage} missionData={missionData} />
+      <Drawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />
+      <NavBar stage={stage} missionData={missionData} onHamburgerClick={() => setDrawerOpen(true)} />
       <HeroSection />
       <main className="axiom-main">
         <StageTracker stage={stage} />
@@ -1267,6 +1422,8 @@ export default function App() {
             missionData={missionData}
             constraints={constraints}
             onAddConstraint={addConstraint}
+            initialScenarios={sharedState?.stressTestResults || null}
+            initialRetrievedSources={sharedState?.retrievedSources || []}
           />
         )}
       </main>
