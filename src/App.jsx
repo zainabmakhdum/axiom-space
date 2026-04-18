@@ -36,6 +36,19 @@ const TIER_COLORS = {
   },
 }
 
+const RISK_COLORS = {
+  'CRITICAL RISK': { text: '#EF5350', bg: 'rgba(239,83,80,0.12)', border: 'rgba(239,83,80,0.35)' },
+  'HIGH RISK':     { text: '#FFB300', bg: 'rgba(255,179,0,0.12)',  border: 'rgba(255,179,0,0.35)'  },
+  'MODERATE RISK': { text: '#4FC3F7', bg: 'rgba(79,195,247,0.12)', border: 'rgba(79,195,247,0.35)' },
+  'LOW RISK':      { text: '#4CAF50', bg: 'rgba(76,175,80,0.12)',  border: 'rgba(76,175,80,0.35)'  },
+}
+
+const CONF_COLORS = {
+  HIGH:   { dot: '#4CAF50', text: '#4CAF50',  label: 'HIGH CONFIDENCE' },
+  MEDIUM: { dot: '#FFB300', text: '#FFB300',  label: 'MEDIUM CONFIDENCE' },
+  LOW:    { dot: '#78909C', text: '#90A4AE',  label: 'VALIDATE WITH ENGINEER' },
+}
+
 const OUTCOME_COLORS = {
   pass: {
     border: '#4CAF50',
@@ -570,6 +583,72 @@ function Stage2({ missionData, onComplete }) {
   )
 }
 
+// ─── Risk Assessment & Confidence sub-components ─────────────────────────────
+
+function ConfidenceBadge({ confidence, reason }) {
+  const cfg = CONF_COLORS[confidence] || CONF_COLORS.LOW
+  return (
+    <div className="axiom-confidence-badge" title={reason}>
+      <span className="axiom-confidence-dot" style={{ background: cfg.dot }} />
+      <span className="axiom-confidence-label" style={{ color: cfg.text }}>{cfg.label}</span>
+    </div>
+  )
+}
+
+function DimBar({ score }) {
+  const color = score < 4 ? '#EF5350' : score <= 6 ? '#FFB300' : '#4CAF50'
+  return (
+    <div className="axiom-risk-bar-track">
+      <div className="axiom-risk-bar-fill" style={{ width: `${score * 10}%`, background: color }} />
+    </div>
+  )
+}
+
+function RiskAssessmentView({ assessment }) {
+  const rc = RISK_COLORS[assessment.overallRating] || RISK_COLORS['MODERATE RISK']
+  const dimScoreColor = (s) => s < 4 ? '#EF5350' : s <= 6 ? '#FFB300' : '#4CAF50'
+  return (
+    <div className="axiom-risk-card">
+      <div className="axiom-risk-card-label">CONSTRAINT SET RISK ASSESSMENT</div>
+      <div className="axiom-risk-top-row">
+        <span className="axiom-risk-score">
+          {Number(assessment.overallScore).toFixed(1)}
+          <span className="axiom-risk-score-denom"> / 10</span>
+        </span>
+        <span
+          className="axiom-risk-rating-badge"
+          style={{ color: rc.text, background: rc.bg, border: `1px solid ${rc.border}` }}
+        >
+          {assessment.overallRating}
+        </span>
+      </div>
+      <div className="axiom-risk-dimensions">
+        {assessment.dimensions.map((dim) => (
+          <div key={dim.name} className="axiom-risk-dim-row">
+            <div className="axiom-risk-dim-header">
+              <span className="axiom-risk-dim-name">{dim.name}</span>
+              <span className="axiom-risk-dim-score" style={{ color: dimScoreColor(dim.score) }}>
+                {dim.score}/10
+              </span>
+            </div>
+            <DimBar score={dim.score} />
+            <div className="axiom-risk-dim-rationale">{dim.rationale}</div>
+          </div>
+        ))}
+      </div>
+      <div className="axiom-risk-findings">{assessment.criticalFindings}</div>
+      <div className="axiom-risk-rec-row">
+        <span
+          className="axiom-risk-rec-badge"
+          style={{ color: rc.text, background: rc.bg, border: `1px solid ${rc.border}` }}
+        >
+          {assessment.recommendation}
+        </span>
+      </div>
+    </div>
+  )
+}
+
 // ─── Stage 3: Stress Test ─────────────────────────────────────────────────────
 
 function Stage3({ missionData, constraints, onAddConstraint, initialScenarios, initialRetrievedSources }) {
@@ -584,6 +663,57 @@ function Stage3({ missionData, constraints, onAddConstraint, initialScenarios, i
   const [sourcesOpen, setSourcesOpen] = useState(false)
   const [citationOpen, setCitationOpen] = useState({})
   const [loadingStatus, setLoadingStatus] = useState('')
+  const [riskAssessment, setRiskAssessment] = useState(null)
+  const [riskLoading, setRiskLoading] = useState(false)
+  const [riskError, setRiskError] = useState('')
+
+  const runRiskAssessment = async (scenarioData) => {
+    console.log('[AXIOM] runRiskAssessment executing with', scenarioData?.length, 'scenarios')
+    setRiskLoading(true)
+    setRiskError('')
+    try {
+      const constraintList = constraints
+        .map((c) => `${c.id} [${c.priorityTier}]: ${c.parsedConstraint}`)
+        .join('\n')
+      const scenarioSummary = scenarioData
+        .map((s) => `[${s.outcome.toUpperCase()}] ${s.scenario} — ${s.explanation}`)
+        .join('\n')
+      const res = await client.messages.create({
+        model: 'claude-opus-4-7',
+        max_tokens: 1024,
+        system:
+          'You are a spacecraft mission safety evaluator. Given a mission context, constraint set, and adversarial stress test results, produce a structured risk assessment. ' +
+          'Score four dimensions from 0-10: Completeness (does the constraint set cover the mission\'s operational scenarios?), Consistency (are constraints free of logical conflicts?), Precision (are constraints unambiguous and measurable?), Operational Coverage (does the constraint set address both nominal and degraded operations?). ' +
+          'Calculate overallScore as the average. Set overallRating to: CRITICAL RISK (0-3), HIGH RISK (4-5), MODERATE RISK (6-7), LOW RISK (8-10). ' +
+          'Set recommendation to one of: NOT READY FOR DEPLOYMENT / REVISE BEFORE DEPLOYMENT / REVIEW RECOMMENDED / APPROVED FOR REVIEW. Return JSON only.',
+        messages: [{
+          role: 'user',
+          content:
+            `Mission: ${missionData.missionName} (${missionData.missionType})\n` +
+            `Objective: ${missionData.objective}\n` +
+            `Environment: ${missionData.operationalEnvironment}\n\n` +
+            `Constraints:\n${constraintList}\n\n` +
+            `Stress Test Results:\n${scenarioSummary}\n\n` +
+            `Return ONLY a valid JSON object:\n` +
+            `{"overallScore":6.2,"overallRating":"MODERATE RISK","dimensions":[{"name":"Completeness","score":7,"rationale":"..."},{"name":"Consistency","score":4,"rationale":"..."},{"name":"Precision","score":6,"rationale":"..."},{"name":"Operational Coverage","score":7,"rationale":"..."}],"criticalFindings":"...","recommendation":"REVISE BEFORE DEPLOYMENT"}`,
+        }],
+      })
+      console.log('[AXIOM] risk assessment raw response:', res)
+      const text = res.content
+        .filter(item => item.type === 'text')
+        .map(item => item.text)
+        .join('')
+        .replace(/```json|```/g, '')
+        .trim()
+      console.log('[AXIOM] risk assessment text:', text)
+      setRiskAssessment(JSON.parse(text))
+    } catch (err) {
+      console.log('[AXIOM] risk assessment error:', err)
+      setRiskError(err.message || 'Risk assessment failed')
+    } finally {
+      setRiskLoading(false)
+    }
+  }
 
   useEffect(() => {
     if (!loading) return
@@ -598,6 +728,13 @@ function Stage3({ missionData, constraints, onAddConstraint, initialScenarios, i
     return () => { clearTimeout(t1); clearTimeout(t2) }
   }, [loading])
 
+  useEffect(() => {
+    if (scenarios && scenarios.length > 0 && missionData && constraints.length > 0) {
+      console.log('[AXIOM] stress test complete, triggering risk assessment')
+      runRiskAssessment(scenarios)
+    }
+  }, [scenarios])
+
   const runTest = async (isRerun = false) => {
     if (isRerun) setAnalysisVersion((v) => v + 1)
     setLoading(true)
@@ -605,6 +742,9 @@ function Stage3({ missionData, constraints, onAddConstraint, initialScenarios, i
     setScenarios(null)
     setFixStates({})
     setCitationOpen({})
+    setRiskAssessment(null)
+    setRiskLoading(false)
+    setRiskError('')
     try {
       const constraintList = constraints
         .map((c) => `${c.id} [${c.priorityTier}]: ${c.parsedConstraint}`)
@@ -620,7 +760,8 @@ function Stage3({ missionData, constraints, onAddConstraint, initialScenarios, i
         system:
           'You are an adversarial autonomous agent specialized in finding loopholes, conflicts, and gaps in spacecraft mission constraint sets. ' +
           'Your role is to identify scenarios where constraints fail, conflict with each other, or leave dangerous coverage gaps. ' +
-          'Be specific, technically rigorous, and creative. Think like an attacker stress-testing the system.' +
+          'Be specific, technically rigorous, and creative. Think like an attacker stress-testing the system. ' +
+          'For each scenario, also assess your confidence in the scenario\'s validity: HIGH = direct logical contradiction with no domain-specific assumptions required; MEDIUM = plausible but depends on operational assumptions that may not hold; LOW = requires domain-specific knowledge (orbital mechanics, power systems, radiation effects) that should be validated by a mission engineer.' +
           ragContext,
         messages: [
           {
@@ -631,13 +772,16 @@ function Stage3({ missionData, constraints, onAddConstraint, initialScenarios, i
               `Environment: ${missionData.operationalEnvironment}\n\n` +
               `Constraints:\n${constraintList}\n\n` +
               `Return ONLY a JSON array of exactly 6 adversarial scenarios. No markdown, no explanation.\n\n` +
-              `[{"scenario":"...","constraintsInvolved":["C-01"],"outcome":"pass","explanation":"...","citations":[]}]\n\n` +
+              `[{"scenario":"...","constraintsInvolved":["C-01"],"outcome":"pass","explanation":"...","citations":[],"confidence":"HIGH","confidenceReason":"..."}]\n\n` +
               `outcome MUST be exactly one of: pass, conflict, gap\n` +
-              `citations MUST be an array of reference IDs (e.g. ["GSFC-AN-001"]) from the REAL-WORLD REFERENCE DATA that directly informed this scenario, or an empty array if none apply`,
+              `citations MUST be an array of reference IDs (e.g. ["GSFC-AN-001"]) from the REAL-WORLD REFERENCE DATA that directly informed this scenario, or an empty array if none apply\n` +
+              `confidence MUST be exactly one of: HIGH, MEDIUM, LOW\n` +
+              `confidenceReason MUST be a single sentence explaining the confidence level`,
           },
         ],
       })
-      setScenarios(parseJSON(res.content[0].text))
+      const parsed = parseJSON(res.content[0].text)
+      setScenarios(parsed)
     } catch (err) {
       setError(err.message || 'Stress test failed')
     } finally {
@@ -953,7 +1097,56 @@ function Stage3({ missionData, constraints, onAddConstraint, initialScenarios, i
     doc.setTextColor(...OUT_C.pass);     doc.text(`PASS: ${passC}`,      ML,      y)
     doc.setTextColor(...OUT_C.conflict); doc.text(`CONFLICT: ${conflC}`, ML + 36, y)
     doc.setTextColor(...OUT_C.gap);      doc.text(`GAP: ${gapC}`,        ML + 86, y)
-    y += 8; hr(y); y += 6
+    y += 8
+
+    // ── RISK ASSESSMENT BLOCK ────────────────────────────────────────────────
+    if (riskAssessment) {
+      const RISK_PDF_C = {
+        'CRITICAL RISK': [239,83,80], 'HIGH RISK': [255,179,0],
+        'MODERATE RISK': [79,195,247], 'LOW RISK': [76,175,80],
+      }
+      const dimScoreC = (s) => s < 4 ? [239,83,80] : s <= 6 ? [255,179,0] : [76,175,80]
+      const rc = RISK_PDF_C[riskAssessment.overallRating] || C_DIM
+
+      faintHr(y); y += 6
+
+      // Section label
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(7.5); doc.setTextColor(...C_DIM)
+      doc.text('CONSTRAINT SET RISK ASSESSMENT', ML, y); y += 5
+
+      // Score + rating line + recommendation right-aligned
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(10); doc.setTextColor(...rc)
+      doc.text(
+        `RISK SCORE: ${Number(riskAssessment.overallScore).toFixed(1)} / 10  —  ${riskAssessment.overallRating}`,
+        ML, y
+      )
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(8); doc.setTextColor(...rc)
+      doc.text(`[ ${riskAssessment.recommendation} ]`, W - ML, y, { align: 'right' })
+      y += 7
+
+      // Dimensions
+      if (riskAssessment.dimensions?.length) {
+        riskAssessment.dimensions.forEach((dim) => {
+          y = checkPageBreak(y, 16)
+          const sc = dimScoreC(dim.score)
+          doc.setFont('helvetica', 'bold'); doc.setFontSize(8.5); doc.setTextColor(...sc)
+          doc.text(`${dim.name}  ${dim.score}/10`, ML + 2, y); y += 4.5
+          doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(...C_DIM)
+          const rLines = doc.splitTextToSize(sanitize(dim.rationale || ''), CW - 6)
+          doc.text(rLines, ML + 4, y); y += rLines.length * 4 + 3
+        })
+      }
+
+      // Critical findings
+      if (riskAssessment.criticalFindings) {
+        y += 1
+        doc.setFont('helvetica', 'italic'); doc.setFontSize(8.5); doc.setTextColor(...C_DIM)
+        const cfLines = doc.splitTextToSize(sanitize(riskAssessment.criticalFindings), CW - 4)
+        doc.text(cfLines, ML + 2, y); y += cfLines.length * 4.5 + 4
+      }
+    }
+
+    hr(y); y += 6
 
     scenarios.forEach((s, i) => {
       y = checkPageBreak(y, 22)
@@ -1023,8 +1216,11 @@ function Stage3({ missionData, constraints, onAddConstraint, initialScenarios, i
         doc.setFontSize(8.5)
         const eLines = doc.splitTextToSize(itemExpl, CW - 10)
 
+        const hasConf = !!item.confidence
+        const confRowH = hasConf ? 5 : 0
         const blockH =
           7 +                      // header row (checkbox + outcome + constraints)
+          confRowH +               // confidence row
           sLines.length * 5 + 3 +  // scenario text
           eLines.length * 4.5 +    // explanation
           (citationIds.length ? 5 : 0) +  // citation line
@@ -1050,6 +1246,19 @@ function Stage3({ missionData, constraints, onAddConstraint, initialScenarios, i
           doc.text(item.constraintsInvolved.join('  '), ML + 7 + 38, y)
         }
         y += 6
+
+        // Confidence indicator
+        if (hasConf) {
+          const CONF_PDF = { HIGH: [76,175,80], MEDIUM: [255,179,0], LOW: [120,144,156] }
+          const cc = CONF_PDF[item.confidence] || C_DIM
+          doc.setFont('helvetica', 'bold'); doc.setFontSize(7.5); doc.setTextColor(...cc)
+          doc.text(`[${item.confidence} CONFIDENCE]`, ML + 7, y)
+          if (item.confidence === 'LOW') {
+            doc.setFont('helvetica', 'italic'); doc.setFontSize(7.5); doc.setTextColor(...C_DIM)
+            doc.text('Requires domain expert validation.', ML + 7 + 38, y)
+          }
+          y += 5
+        }
 
         // Full scenario text
         doc.setFont('helvetica', 'bold'); doc.setFontSize(10); doc.setTextColor(...C_WHITE)
@@ -1222,6 +1431,23 @@ function Stage3({ missionData, constraints, onAddConstraint, initialScenarios, i
             <span className="axiom-summary-gap">■ GAP: {counts.gap}</span>
           </div>
 
+          <p className="axiom-confidence-legend">
+            Confidence reflects logical certainty: HIGH = direct logical contradiction · MEDIUM = depends on operational assumptions · LOW = requires domain expert validation
+          </p>
+
+          {riskLoading && (
+            <div className="axiom-risk-loading">
+              <span className="axiom-spinner" />
+              EVALUATING CONSTRAINT SET...
+            </div>
+          )}
+          {riskError && !riskLoading && (
+            <div className="axiom-risk-error">Risk assessment unavailable</div>
+          )}
+          {riskAssessment && !riskLoading && (
+            <RiskAssessmentView assessment={riskAssessment} />
+          )}
+
           {retrievedSources.length > 0 && (
             <div className="axiom-data-sources">
               <button
@@ -1286,6 +1512,10 @@ function Stage3({ missionData, constraints, onAddConstraint, initialScenarios, i
                 )}
 
                 <div className="axiom-scenario-explanation">{s.explanation}</div>
+
+                {s.confidence && (
+                  <ConfidenceBadge confidence={s.confidence} reason={s.confidenceReason} />
+                )}
 
                 {s.citations?.length > 0 && (
                   <div className="axiom-citation-row">
